@@ -1,4 +1,23 @@
 {
-  // https://nuxt.com/docs/guide/concepts/typescript
-  "extends": "./.nuxt/tsconfig.json"
+	"extends": "./.nuxt/tsconfig.json", // Обязательно! Наследует типы модулей
+	"compilerOptions": {
+		"strict": true, // Ваш strict mode
+		"baseUrl": ".",
+		"paths": {
+			"~/*": ["./*"],
+			"@/*": ["./*"]
+		},
+		"types": [
+			"@nuxt/types", // Базовые типы Nuxt
+			"@types/node" // Для Node.js
+			// Если нужно, добавьте типы модулей (редко):
+			// "@nuxt/module-builder"
+		]
+	},
+	"include": [
+		"**/*.ts",
+		"**/*.vue",
+		".nuxt/nuxt.d.ts" // Типы auto-imports
+	],
+	"exclude": ["node_modules", ".output", "dist"]
 }
