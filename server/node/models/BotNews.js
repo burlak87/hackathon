@@ -1,8 +1,8 @@
 import mongoose from 'mongoose'
 
-const Notification = new mongoose.Schema({
+const BotNews = new mongoose.Schema({
   chatId: { type: String, required: true },
   text: { type: String, required: true },
 })
 
-export default mongoose.model('Notification', Notification)
+export default mongoose.model('BotNews', BotNews)
