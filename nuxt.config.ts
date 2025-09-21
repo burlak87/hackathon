@@ -21,6 +21,8 @@ export default defineNuxtConfig({
 	],
 })
 
+// Надо подумать 
+
 // // https://nuxt.com/docs/api/configuration/nuxt-config
 // export default defineNuxtConfig({
 // 	// DevTools для отладки (включает инспектор модулей, Pinia, компонентов и т.д.)

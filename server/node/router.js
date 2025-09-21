@@ -1,26 +1,15 @@
-import router from './router.js'
-import express from 'express'
-import cors from 'cors'
-import fileUpload from 'express-fileupload'
+import Router from 'express'
+import PostController from './controller/PostController.js'
+import NotificationController from './controller/NotificationController.js'
 
-const PORT = 5000
-const DB_URL =
-	'mongodb+srv://noobikcfb:7ejX8bQK303aA9Ul@cluster0.aynxjpc.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0'
-const app = express()
+const router = new Router()
 
-app.use(cors())
-app.use(express.json())
-app.use(express.static('../../public/downloads'))
-app.use(fileUpload({}))
-app.use('/api-v1', router)
+router.get('/posts', PostController.getAll)
+router.get('/posts/:id', PostController.getOne)
+router.post('/posts', PostController.create)
+router.put('/posts', PostController.update)
+router.delete('/posts/:id', PostController.delete)
 
-async function startApp() {
-	try {
-		await mongoose.connect(DB_URL)
-		app.listen(PORT, () => console.log('SERVER STARTED ON PORT ' + PORT))
-	} catch (e) {
-		console.log(e)
-	}
-}
+router.post('/notification', NotificationController.sending)
 
-startApp()
+export default router
