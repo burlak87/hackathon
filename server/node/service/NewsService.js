@@ -1,38 +1,23 @@
 import News from '../models/News.js'
 
 class NewsService {
-  async getAll() {
-    const posts = await News.find()
-    return posts
-  }
-
-
-  // async sending(id, txt, token) {
-  //   if (!id || !txt || !token) throw new Error('Не все данные указанны')
-
-  //   if (isNaN(id)) throw new Error('ID чата должен быть числом')
-
-  //   const bot = new TelegramBot(token, { polling: true })
-
-  //   try {
-  //     const createdBotNews = await BotNews.create({
-  //       chatId: id,
-  //       text: txt,
-  //     })
-  //     await bot.sendMessage(id, `Заявка: ${txt}`)
-  //     return createdBotNews
-  //   } catch (e) {
-  //     if (e.code === 'ETELEGRAM') {
-  //       throw new Error('Ошибка Telegram API: ' + e.message)
-  //     } else if (e.name === 'ValidationError') {
-  //       throw new Error('Ошибка валидации данных: ' + e.message)
-  //     } else {
-  //       throw new Error('Внутренняя ошибка сервера')
-  //     }
-  //   } finally {
-  //     bot.close()
-  //   }
+  // async getAll() {
+  //   const posts = await News.find()
+  //   return posts
   // }
+
+  // Функции для определения времени обновления должны быть в отдельной директории
+
+  // Проверка на нужные категории 
+
+  // Проверка на нужные источники
+
+
+
 }
+
+// должна быть проверка новостей после окончания обновления списка. 
+// Сжатие новостей происходит через текстовую модель сразу после отработки проверки. 
+// Лишь после сжатия запись в бд.
 
 export default new NewsService()
