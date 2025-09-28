@@ -4,7 +4,7 @@ import TelegramBot from "node-telegram-bot-api";
 class TelegramParser extends NewsSource {
 	constructor(botToken, channelId) {
 		super('Telegram')
-		this.bor = new TelegramBot(botToken, { polling: true })
+		this.bot = new TelegramBot(botToken, { polling: true })
 		this.url = channelId
 		this.recentMessages = new Set()
 	}

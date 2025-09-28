@@ -1,45 +1,6 @@
-// const tress = require('tress');
-// const needle = require('needle');
-// const cheerio = require('cheerio');
-// const resolve = require('url').resolve;
-// const fs = require('fs');
-
-// let url = 'http://www.ferra.ru/ru/techlife/news/';
-// let results = []
-
-// let q = tress(function(url, callback) {
-//   needle.get(url, function(err, res) {
-//     if (err) throw err;
-    
-//     var $ = cheerio.load(res.body);
-//     if($('.b_infopost').contents().eq(2).text().trim().slice(0, -1) === "Алексей Козлов") {
-//       results.push({
-// 				title: $('h1').text(),
-// 				date: $('.b_infopost>.date').text(),
-//         hred: url,
-//         size: $('.newsbody').text().length(),
-// 			});
-//     };
-
-//     $('b_review p>a').each(function() {
-//       q.push($(this).attr('href'));
-//     });
-
-//     $('bpr_next>a').each(function() {
-//       q.push(resolve(url, $(this).attr('href')));
-//     });
-
-//     callback();
-//   });
-// }, 10);
-
-// q.drain = function() {
-//   fs.writeFileSync('./data.json', JSON.stringify(results, null, 4));
-// }
-
-// q.push(url);
-
+import axios from "axios";
 import NewsSource from "../interface/NewsSource";
+import cheerio from "cherio"
 
 class WebScrapingParser extends NewsSource {
   constructor(url, selectors) {
@@ -48,7 +9,42 @@ class WebScrapingParser extends NewsSource {
     this.selectors = selectors;
   }
 
-  async fetchNews() {}
+  async fetchNews(options = { limit:10 } ) {
+    try {
+			const response = await axios.get(this.url)
+			const $ = cheerio.load(response.data)
+
+			const news = []
+			$(this.selectors.title)
+				.slice(0, options.limit)
+				.each((i, elem) => {
+					const title = $(elem).text().trim()
+					const link = $(elem).find(this.selectors.link).attr('href')
+					const summaryElem = $(elem).next(this.selectors.summary)
+					const summary = summaryElem.length ? summaryElem.text().trim() : ''
+
+					if (title) {
+						news.push({
+							title,
+							summary,
+							url: link ? new URL(link, this.url).href : this.url,
+							date: new Date(),
+							source: this.sourceName,
+						})
+					}
+				})
+			return news
+		} catch (error) {
+      console.error('Scraping error: ', error.message)
+      return []
+    }
+
+		
+
+		
+
+		
+  }
 }
 
 export default new WebScrapingParser
