@@ -1,4 +1,4 @@
-import notificationService from '../service/notificationService.js'
+import NotificationService from '../service/notificationService.js'
 
 class NotificationController {
 	async sending(req, res) {
@@ -6,7 +6,7 @@ class NotificationController {
 			const { recipientId, message } = req.body
 			// recipientId = 806974705
 			const token = '7059882388:AAEQkQ0XGAeSwCrT20WEx_ayeDro621x5yI'
-			const notification = await notificationService.sending(
+			const notification = await NotificationService.sending(
 				recipientId,
 				message,
 				token

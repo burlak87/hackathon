@@ -1,18 +1,30 @@
 import News from '../models/News.js'
 
+const { Pool } = require('pg')
+const pool = new Pool({
+	
+})
+
 class NewsService {
-  // async getAll() {
-  //   const posts = await News.find()
-  //   return posts
-  // }
-
-  // Проверка на нужные категории 
-
-  // Проверка на нужные источники
+  async getPosts(filters) {
+    const { category, source } = filters;
+    let query = 'SELECT * FROM posts';
+    const conditions = []
+    const values = []
+    if (category) {
+      values.push(category)
+      conditions.push(`category = $${values.length}`)
+    }
+    if (source) {
+      values.push(source)
+      conditions.push(`source = $${values.length}`)
+    }
+    if (conditions.length > 0) {
+      query += ' WHERE ' + conditions.join(' AND ')
+    }
+    const { rows } = await pool.query(query, values)
+    return rows
+  }
 }
-
-// должна быть проверка новостей после окончания обновления списка. 
-// Сжатие новостей происходит через текстовую модель сразу после отработки проверки. 
-// Лишь после сжатия запись в бд.
 
 export default new NewsService()
