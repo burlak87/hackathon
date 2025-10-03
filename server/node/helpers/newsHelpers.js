@@ -1,4 +1,5 @@
-const { pool } = require('../config/database.js')
+import { pool } from '../config/database.js'
+
 /**
  * Получить последнюю дату новости по источнику (source)
  * @param {string} source - Название источника
@@ -21,6 +22,7 @@ async function getLastNewsDateBySource(source) {
 		return null // Fallback: null, чтобы парсер использовал 24ч
 	}
 }
+
 /**
  * Вставить массив новостей в БД (batch insert для производительности)
  * @param {Array} newsArray - Массив объектов {title, summary_text, url, date, source, categories}
@@ -63,6 +65,7 @@ async function insertNews(newsArray) {
 		throw error // Пропагандируем ошибку, если критично
 	}
 }
+
 /**
  * Получить все новости (опционально, для отладки или API)
  * @param {Object} options - { limit: 10 }
