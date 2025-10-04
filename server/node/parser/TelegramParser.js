@@ -1,6 +1,6 @@
 import NewsSource from "../interface/NewsSource.js"
 import TelegramBot from "node-telegram-bot-api"
-import { getLastNewsDateBySource } from "../helpers/newsHelpers.js"
+import { searchLast } from "../helpers/searchLast.js"
 
 class TelegramParser extends NewsSource {
   constructor(botToken, channelId) {
@@ -13,26 +13,7 @@ class TelegramParser extends NewsSource {
 
 	async fetchNews(options = { limit: 10 }) {
 		let lastDate = null
-		try {
-			lastDate = await getLastNewsDateBySource(this.source)
-			if (!lastDate) {
-				lastDate = new Date(Date.now() - 24 * 60 * 60 * 1000)
-				console.log(
-					`Нет новостей по каналу "${this.source}". Парсим за последние 24 часа.`
-				)
-			} else {
-				console.log(
-					`Последняя новость по "${
-						this.source
-					}": ${lastDate.toISOString()}. Парсим после этой даты.`
-				)
-			}
-		} catch (error) {
-			console.error('Ошибка при получении даты из БД:', error.message)
-			lastDate = new Date(Date.now() - 24 * 60 * 60 * 1000)
-			console.log('Fallback: парсим за последние 24 часа из-за ошибки.')
-		}
-
+		lastDate = await searchLast(lastDate, this.source)
 		// Для тестовой версии с лимитом; в production — используйте getChatHistory или интеграция с events или API calls
 		try {
 			const chatId = this.source

@@ -1,7 +1,7 @@
 import axios from "axios";
 import NewsSource from "../interface/NewsSource.js";
 import cheerio from "cheerio";
-import { getLastNewsDateBySource } from "../helpers/newsHelpers.js"; // Импорт из helpers
+import { searchLast } from "../helpers/searchLast.js"
 // Опционально: import { insertNews } from "../helpers/newsHelpers.js"; // Для сохранения
 
 class WebScrapingParser extends NewsSource {
@@ -14,23 +14,7 @@ class WebScrapingParser extends NewsSource {
 	async fetchNews(options = { limit: 10 }) {
 		let lastDate = null
 		const source = this.sourceName
-		try {
-			lastDate = await getLastNewsDateBySource(source)
-			if (!lastDate) {
-				lastDate = new Date(Date.now() - 24 * 60 * 60 * 1000)
-				console.log(
-					`Нет новостей по источнику "${source}". Парсим за последние 24 часа.`
-				)
-			} else {
-				console.log(
-					`Последняя новость по "${source}": ${lastDate.toISOString()}. Парсим после этой даты.`
-				)
-			}
-		} catch (error) {
-			console.error('Ошибка при получении даты из БД:', error.message)
-			lastDate = new Date(Date.now() - 24 * 60 * 60 * 1000)
-			console.log('Fallback: парсим за последние 24 часа из-за ошибки.')
-		}
+		lastDate = await searchLast(lastDate, source)
 		try {
 			const response = await axios.get(this.url, { timeout: 10000 })
 			const $ = cheerio.load(response.data)

@@ -1,6 +1,6 @@
 import NewsSource from '../interface/NewsSource.js'
 import axios from 'axios'
-import { getLastNewsDateBySource } from '../helpers/newsHelpers.js'
+import { searchLast } from '../helpers/searchLast.js'
 
 class NewsApiParser extends NewsSource {
 	constructor(apiKey) {
@@ -13,23 +13,7 @@ class NewsApiParser extends NewsSource {
 		let lastDate = null
 		const querySource = options.source
 		if (querySource) {
-			try {
-				lastDate = await getLastNewsDateBySource(querySource)
-				if (!lastDate) {
-					lastDate = new Date(Date.now() - 24 * 60 * 60 * 1000)
-					console.log(
-						`Нет новостей по источнику "${querySource}". Парсим за последние 24 часа.`
-					)
-				} else {
-					console.log(
-						`Последняя новость по "${querySource}": ${lastDate.toISOString()}. Парсим после этой даты.`
-					)
-				}
-			} catch (error) {
-				console.error('Ошибка при получении даты из БД:', error.message)
-				lastDate = new Date(Date.now() - 24 * 60 * 60 * 1000)
-				console.log('Fallback: парсим за последние 24 часа из-за ошибки.')
-			}
+			lastDate = await searchLast(lastDate, querySource)
 		} else {
 			lastDate = new Date(Date.now() - 24 * 60 * 60 * 1000)
 			console.log(

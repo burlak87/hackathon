@@ -1,324 +1,422 @@
-// const express = require('express')
-// const axios = require('axios')
-// const { cosine } = require('ml-distance')
-// const bodyParser = require('body-parser')
-// const app = express()
-// const PORT = 3000
-// // Middleware
-// app.use(bodyParser.json())
-// // Hugging Face API endpoints (бесплатные публичные модели)
-// const EMBEDDING_MODEL = 'sentence-transformers/all-MiniLM-L6-v2'
-// const SUMMARIZATION_MODEL = 'facebook/bart-large-cnn'
-// const HF_API_URL = 'https://api-inference.huggingface.co/models/'
-// // Функция для генерации эмбеддинга (вектор) новости
-// async function getEmbedding(text) {
-// 	try {
-// 		const response = await axios.post(
-// 			`${HF_API_URL}${EMBEDDING_MODEL}`,
-// 			{
-// 				inputs: text,
-// 			},
-// 			{
-// 				headers: { 'Content-Type': 'application/json' },
-// 			}
-// 		)
-// 		return response.data[0] // Возвращает массив чисел (эмбеддинг)
-// 	} catch (error) {
-// 		console.error('Ошибка эмбеддинга:', error.message)
-// 		throw new Error('Не удалось сгенерировать эмбеддинг')
-// 	}
-// }
+import FactoryService from './FactoryService.js'
 
-// // Функция для суммаризации новости
-// async function summarizeNews(text) {
-//   try {
-//     const response = await axios.post(`${HF_API_URL}${SUMMARIZATION_MODEL}`, {
-//       inputs: text,
-//       parameters: {
-//         max_length: 100,  // Ограничиваем длину суммаризации
-//         min_length: 30,
-//         do_sample: false, // Детерминистично, чтобы избежать вариаций
-//         num_beams: 4      // Для лучшего качества
-//       }
-//     }, {
-//       headers: { 'Content-Type': 'application/json' }
-//     });
-//     let summary = response.data[0].summary_text;
-    
-//     // Обрезаем до 3 предложений (простой split по точкам)
-//     const sentences = summary.split('.').slice(0, 3).join('. ');
-//     summary = sentences + '.';
-    
-//     // Обрезаем до 256 символов (включая пунктуацию)
-//     if (summary.length > 256) {
-//       summary = summary.substring(0, 256).trim() + '...';
-//     }
-    
-//     return summary;
-//   } catch (error) {
-//     console.error('Ошибка суммаризации:', error.message);
-//     // Fallback: простое усечение оригинала, если API недоступен
-//     return text.substring(0, 256) + '...';
-//   }
-// }
-
-// // Основная логика обработки: удаление дубликатов + суммаризация
-// async function processNewsArray(newsArray) {
-// 	if (!Array.isArray(newsArray) || newsArray.length === 0) {
-// 		return []
-// 	}
-// 	// Шаг 1: Генерируем эмбеддинги для всех новостей
-// 	const embeddings = []
-// 	for (const news of newsArray) {
-// 		const embedding = await getEmbedding(news)
-// 		embeddings.push({ text: news, embedding })
-// 	}
-// 	// Шаг 2: Удаляем дубликаты (семантические)
-// 	const uniqueNews = []
-// 	const usedEmbeddings = new Set()
-// 	for (let i = 0; i < embeddings.length; i++) {
-// 		const current = embeddings[i]
-// 		let isDuplicate = false
-// 		for (const usedId of usedEmbeddings) {
-// 			const prev = embeddings[usedId]
-// 			const similarity = cosine(current.embedding, prev.embedding) // 0-1, где 1 = идентично
-// 			if (similarity > 0.8) {
-// 				// Порог для "немного по-другому"
-// 				isDuplicate = true
-// 				break
-// 			}
-// 		}
-
-// 		if (!isDuplicate) {
-// 			uniqueNews.push(current.text)
-// 			usedEmbeddings.add(i)
-// 		}
-// 	}
-
-// 	// Шаг 3: Суммаризируем уникальные новости
-// 	const summarized = []
-// 	for (const news of uniqueNews) {
-// 		const summary = await summarizeNews(news)
-// 		summarized.push(summary)
-// 	}
-// 	return summarized // Новый массив с сжатыми уникальными новостями
-// }
-// // Эндпоинт для обработки
-// app.post('/process-news', async (req, res) => {
-// 	try {
-// 		const { newsArray } = req.body // Ожидаем { "newsArray": ["новость1", "новость2", ...] }
-
-// 		if (!newsArray) {
-// 			return res.status(400).json({ error: 'newsArray обязателен' })
-// 		}
-// 		const processed = await processNewsArray(newsArray)
-// 		res.json({
-// 			originalLength: newsArray.length,
-// 			uniqueSummarizedLength: processed.length,
-// 			data: processed,
-// 		})
-// 	} catch (error) {
-// 		console.error('Ошибка обработки:', error)
-// 		res.status(500).json({ error: 'Ошибка при обработке новостей' })
-// 	}
-// })
-
-// // Запуск сервера
-// app.listen(PORT, () => {
-//   console.log(`Сервер запущен на http://localhost:${PORT}`);
-// });
-
-const express = require('express')
 const axios = require('axios')
-const { cosine } = require('ml-distance')
-const bodyParser = require('body-parser')
 const natural = require('natural')
+const { TfIdf } = require('natural')
 const pLimit = require('p-limit')
-const app = express()
-const PORT = 3000
-// Middleware
-app.use(bodyParser.json({ limit: '10mb' })) // Для больших массивов эмбеддингов
-// Hugging Face API (с таймаутом)
-const HF_API_URL = 'https://api-inference.huggingface.co/models/'
+
+const DUPLICATE_THRESHOLD = 0.8
+const MAX_SUMMARY_LENGTH = 256
+const MAX_SUMMARY_SENTENCES = 3
+const HF_API_URL = 'https://api-inference.huggingface.co/models'
 const EMBEDDING_MODEL = 'sentence-transformers/all-MiniLM-L6-v2'
 const SUMMARIZATION_MODEL = 'facebook/bart-large-cnn'
-const AXIOS_CONFIG = { timeout: 10000 } // 10s timeout
-// Fallback: TF-IDF tokenizer и TfIdf для семантики
-const TfIdf = natural.TfIdf
-const tokenizer = new natural.WordTokenizer()
-const tfidf = new TfIdf()
-// Limit concurrency (5 параллельных API-calls)
-const limit = pLimit(5)
+const HF_TOKEN = process.env.HF_TOKEN || null
+const HEADERS = HF_TOKEN ? { Authorization: `Bearer ${HF_TOKEN}` } : {}
 
-// Функция для генерации эмбеддинга (с fallback)
-async function getEmbedding(text, useFallback = false) {
-  if (useFallback) {
-    // Fallback: TF-IDF vector (упрощённо, как sparse vector)
-    const tokens = tokenizer.tokenize(text.toLowerCase());
-    tfidf.addDocument(tokens);
-    const vector = [];
-    tfidf.tfidfs(tokens, (i, measure) => vector.push(measure || 0));
-    return vector.slice(0, 384); // Паддим до размера MiniLM (384 dims)
-  }
-  try {
-    const response = await axios.post(`${HF_API_URL}${EMBEDDING_MODEL}`, { inputs: text }, {
-      ...AXIOS_CONFIG,
-      headers: { 'Content-Type': 'application/json' }
-    });
-    return response.data[0] || [];
-  } catch (error) {
-    console.error('API Embedding error:', error.message);
-    // Retry with fallback
-    return getEmbedding(text, true);
-  }
-}
+const apiClient = axios.create({
+	timeout: 10000, // 10s
+	headers: { ...HEADERS, 'Content-Type': 'application/json' },
+})
 
-// Функция для суммаризации (с fallback)
-async function summarizeNews(text) {
-  try {
-    const response = await axios.post(`${HF_API_URL}${SUMMARIZATION_MODEL}`, {
-      inputs: text,
-      parameters: { max_length: 100, min_length: 30, do_sample: false, num_beams: 4 }
-    }, AXIOS_CONFIG);
-    let summary = response.data?.[0]?.summary_text || text;
-    
-    // Обрезаем до 3 предложений
-    const sentences = summary.split('.').slice(0, 3).join('. ');
-    summary = sentences + '.';
-    
-    // До 256 символов
-    if (summary.length > 256) {
-      summary = summary.substring(0, 256).trim() + '...';
-    }
-    return summary;
-  } catch (error) {
-    console.error('API Summarization error:', error.message);
-    // Fallback: усечение
-    const sentences = text.split('.').slice(0, 3).join('. ');
-    let summary = sentences + '.';
-    if (summary.length > 256) {
-      summary = summary.substring(0, 256).trim() + '...';
-    }
-    return summary;
-  }
-}
+const limit = pLimit(10)
 
-// Вычисление топ-3 категорий (с fallback на keyword match)
-async function getTopCategories(newsText, categoryEmbeddings, categories, useFallback = false) {
-  const newsEmbedding = await getEmbedding(newsText, useFallback);
-  
-  let similarities = [];
-  for (let i = 0; i < categories.length; i++) {
-    const sim = cosine(newsEmbedding, categoryEmbeddings[i]);
-    similarities.push({ category: categories[i], similarity: sim });
-  }
-  
-  // Топ-3 по сходству
-  similarities.sort((a, b) => b.similarity - a.similarity);
-  return similarities.slice(0, 3).map(s => s.category);
-}
-// Основная логика обработки
-async function processNewsArray(newsArray, categories = [], previousEmbeddings = []) {
-	if (!Array.isArray(newsArray) || newsArray.length === 0) {
-		return []
-	}
-	let useFallback = false // Глобальный флаг для fallback, если первый API fail
-	// Шаг 1: Эмбеддинги категорий (один раз, параллельно)
-	const categoryEmbeddings = await Promise.all(
-		categories.map(cat =>
-			getEmbedding(cat).catch(() => {
-				useFallback = true
-				return []
-			})
-		)
-	)
-	// Шаг 2: Параллельные эмбеддинги для новых новостей
-	const embeddingsPromises = newsArray.map(news =>
-		getEmbedding(news).catch(err => {
-			useFallback = true
-			return { text: news, embedding: [] }
-		})
-	)
-	const newsWithEmbeddings = await Promise.all(embeddingsPromises)
-	const newEmbeddings = newsWithEmbeddings
-		.map(item => item.embedding)
-		.filter(e => e.length > 0)
-	// Шаг 3: Детальная проверка дубликатов (против previous + новых)
-	const allPrevious = [...previousEmbeddings, ...newEmbeddings.slice(0, -1)] // Исключаем текущий для self-check
-	const uniqueNews = []
-	const uniqueIndices = [] // Индексы уникальных в newsArray
-	for (let i = 0; i < newsWithEmbeddings.length; i++) {
-		const current = newsWithEmbeddings[i]
-		let isDuplicate = false
-		// Проверяем против всех previous + предыдущих новых
-		for (const prevEmb of allPrevious) {
-			if (useFallback) {
-				// Fallback: Levenshtein similarity (0-1)
-				const sim =
-					natural.JaroWinklerDistance(
-						current.text,
-						newsArray[/* approx index */ 0]
-					) || 0 // Упрощённо; адаптируйте
-				if (sim > 0.8) {
-					isDuplicate = true
-					break
-				}
-			} else {
-				const sim = cosine(current.embedding, prevEmb)
-				if (sim > 0.8) {
-					// Порог
-					isDuplicate = true
-					break
-				}
+class TimeService {
+	async factoryNews() {
+		const config = {
+			newsapi: { apiKey: 'your-news-key' },
+			telegram: { botToken: 'your-bot-token', channelId: '@prime1' },
+			scraping: {
+				url: 'https://www.bcs-express.ru/news',
+				selectors: {
+					title: 'h3.news-title',
+					summary: '.news-summary',
+					link: 'a',
+				},
+			},
+		}
+
+		const newsList = []
+		for (const key in config) {
+			if (key.startsWith('newsapi')) {
+				const parser = FactoryService.create('newsapi', config.newsapi)
+				const news = await parser.fetchNews({ q: 'technology', pageSize: 5 })
+				console.log('Fetched news: ', news)
+				newsList.push(news)
+			} else if (key.startsWith('telegram')) {
+				const parser = FactoryService.create(
+					'newsapi',
+					config.telegram.botToken,
+					config.telegram.channelId
+				)
+				const news = await parser.fetchNews({ limit: 5 })
+				console.log('Fetched news: ', news)
+				newsList.push(news)
+			} else if (key.startsWith('scraping')) {
+				const parser = FactoryService.create(
+					'newsapi',
+					config.scraping.url,
+					config.scraping.selectors
+				)
+				const news = await parser.fetchNews({ limit: 5 })
+				console.log('Fetched news: ', news)
+				newsList.push(news)
 			}
 		}
-		if (!isDuplicate) {
-			uniqueNews.push(current.text)
-			uniqueIndices.push(i)
-			allPrevious.push(current.embedding) // Добавляем для следующих
+
+		function getNewsText(newsItem) {
+			if (typeof newsItem === 'string') return newsItem
+			return (newsItem.title || '') + ' ' + (newsItem.content || '')
 		}
+
+		function cosineSimilarity(vecA, vecB) {
+			if (
+				!Array.isArray(vecA) ||
+				!Array.isArray(vecB) ||
+				vecA.length !== vecB.length ||
+				vecA.length === 0
+			) {
+				return 0 // Несовместимые dims или пустые — 0
+			}
+			const dotProduct = vecA.reduce((sum, a, i) => sum + a * vecB[i], 0)
+			const magnitudeA = Math.sqrt(vecA.reduce((sum, a) => sum + a * a, 0))
+			const magnitudeB = Math.sqrt(vecB.reduce((sum, b) => sum + b * b, 0))
+			return magnitudeA && magnitudeB
+				? dotProduct / (magnitudeA * magnitudeB)
+				: 0
+		}
+
+		let globalTfIdf = null // Глобальный для батчинга
+
+		function initTfIdf(allTexts) {
+			globalTfIdf = new TfIdf()
+			allTexts.forEach(text =>
+				globalTfIdf.addDocument(text.toLowerCase().split(/\s+/))
+			) // Простая токенизация
+		}
+
+		function computeTfIdfEmbedding(index) {
+			const vec = []
+			globalTfIdf.tfidfs(index, (i, measure) => vec.push(measure || 0))
+			return vec
+		}
+
+		function computeTfIdfSimilarity(indexA, indexB) {
+			const vecA = computeTfIdfEmbedding(indexA)
+			const vecB = computeTfIdfEmbedding(indexB)
+			// Паддим/обрезаем до max len для совместимости
+			const maxLen = Math.max(vecA.length, vecB.length, 384) // MiniLM dims
+			while (vecA.length < maxLen) vecA.push(0)
+			while (vecB.length < maxLen) vecB.push(0)
+			while (vecA.length > maxLen) vecA.pop()
+			while (vecB.length > maxLen) vecB.pop()
+			return cosineSimilarity(vecA, vecB)
+		}
+
+		// Ultra-fallback: Jaro-Winkler (0-1 similarity, строковое)
+		function jaroWinklerSimilarity(textA, textB) {
+			return natural.JaroWinklerDistance(textA, textB) || 0
+		}
+
+		// Keyword fallback для классификации (если embeddings fail)
+		function keywordTopCategories(newsText, categories) {
+			const newsWords = newsText.toLowerCase().split(/\s+/)
+			const scores = categories.map(cat => {
+				const catWords = cat.toLowerCase().split(/\s+/)
+				let score = 0
+				catWords.forEach(
+					word =>
+						(score +=
+							newsWords.filter(nw => nw.includes(word)).length > 0 ? 1 : 0)
+				)
+				return { category: cat, score }
+			})
+			return scores
+				.sort((a, b) => b.score - a.score)
+				.slice(0, 3)
+				.map(s => s.category)
+		}
+
+		// Батч-эмбеддинги через HF API (массив текстов -> массив эмбеддингов)
+		async function getBatchEmbeddings(texts) {
+			if (texts.length === 0) return []
+			try {
+				const response = await apiClient.post(
+					`${HF_API_URL}/${EMBEDDING_MODEL}`,
+					{ inputs: texts }
+				)
+				if (Array.isArray(response.data)) {
+					return response.data
+				} else if (response.data.error) {
+					throw new Error(response.data.error)
+				} else {
+					return [response.data] // Если одиночный
+				}
+			} catch (error) {
+				console.error(`HF Batch Embedding error: ${error.message}`)
+				throw error
+			}
+		}
+		// Эмбеддинги с fallback (батч)
+		async function getEmbeddingsWithFallback(allTexts, startIndex = 0) {
+			let embeddings
+			try {
+				embeddings = await getBatchEmbeddings(allTexts)
+			} catch (error) {
+				console.error('Switching to TF-IDF fallback for embeddings')
+				initTfIdf(allTexts) // Батч все тексты
+				return allTexts.map((_, index) =>
+					computeTfIdfEmbedding(startIndex + index)
+				)
+			}
+			return embeddings
+		}
+		// Суммаризация (с limit и fallback)
+		async function summarizeText(text) {
+			return limit(async () => {
+				try {
+					const response = await apiClient.post(
+						`${HF_API_URL}/${SUMMARIZATION_MODEL}`,
+						{
+							inputs: text,
+							parameters: {
+								max_length: 100,
+								min_length: 30,
+								do_sample: false,
+								num_beams: 4,
+							},
+						}
+					)
+					let summary = response.data?.[0]?.summary_text || text
+					// Regex для предложений (улучшенный)
+					const sentences = summary.match(/[^\.!\?]+[\.!\?]+/g) || [summary]
+					summary = sentences.slice(0, MAX_SUMMARY_SENTENCES).join(' ').trim()
+					if (summary.length > MAX_SUMMARY_LENGTH) {
+						summary = summary.slice(0, MAX_SUMMARY_LENGTH - 3).trim() + '...'
+					}
+					return summary
+				} catch (error) {
+					console.error(`Summarization error: ${error.message}`)
+					// Fallback: усечение
+					const sentences = text.match(/[^\.!\?]+[\.!\?]+/g) || [text]
+					let fallback = sentences
+						.slice(0, MAX_SUMMARY_SENTENCES)
+						.join(' ')
+						.trim()
+					if (fallback.length > MAX_SUMMARY_LENGTH) {
+						fallback = fallback.slice(0, MAX_SUMMARY_LENGTH - 3).trim() + '...'
+					}
+					return fallback
+				}
+			})()
+		}
+
+		// const uniqueNewsList = newsList.filter((news, index, self) =>
+		// 	index === self.findIndex((n) => n.url === news.url || n.title === news.title || n.summary === news.summary)
+		// );
+
+		// должна быть проверка новостей после окончания обновления списка можно сортировать через ИИ API.
+
+		const summaryNewsList = []
+		for (let i = 0; i < uniqueNewsList.length; i++) {
+			console.log(uniqueNewsList[i])
+		}
+
+		// Сжатие новостей происходит через текстовую модель сразу после отработки проверки.
+
+		// Лишь после сжатия запись в бд.
+		// Основная функция обработки
+		async function processNews(req, res) {
+			const { news, categories = [], previousEmbeddings = [] } = req.body
+			if (!news || !Array.isArray(news)) {
+				return res
+					.status(400)
+					.json({ error: 'Invalid input: news must be an array' })
+			}
+			const newsTexts = news.map(getNewsText)
+			const allTextsForTfIdf = [...newsTexts, ...categories] // Для батчинга в fallback
+			let useFallback = false
+			let newsEmbeddings = []
+			let categoryEmbeddings = []
+			try {
+				// Батч эмбеддингов категорий (один вызов)
+				if (categories.length > 0) {
+					categoryEmbeddings = await getEmbeddingsWithFallback(
+						categories,
+						newsTexts.length
+					) // startIndex для tfidf
+				}
+				// Батч эмбеддингов новостей (один вызов)
+				newsEmbeddings = await getEmbeddingsWithFallback(newsTexts, 0)
+				// Проверка на fallback (dims != 384)
+				if (newsEmbeddings.length > 0 && newsEmbeddings[0].length !== 384) {
+					useFallback = true
+					initTfIdf(allTextsForTfIdf)
+					console.log('Using TF-IDF fallback for embeddings')
+				}
+			} catch (error) {
+				console.error(
+					'Global embedding error, using full fallback:',
+					error.message
+				)
+				useFallback = true
+				initTfIdf(allTextsForTfIdf)
+				// Перегенерируем embeddings как TF-IDF
+				newsEmbeddings = newsTexts.map((_, i) => computeTfIdfEmbedding(i))
+				categoryEmbeddings = categories.map((_, i) =>
+					computeTfIdfEmbedding(newsTexts.length + i)
+				)
+			}
+			// Дедупликация: Сравнение с previous + между новыми (O(n²))
+			const uniqueNews = []
+			const uniqueIndices = new Set()
+			const allPreviousEmbeddings = [...previousEmbeddings] // Копируем (предполагаем HF dims)
+			const uniqueEmbeddings = [] // Для новых уникальных
+			for (let i = 0; i < news.length; i++) {
+				if (uniqueIndices.has(i)) continue
+				const currentNews = news[i]
+				const currentText = newsTexts[i]
+				let currentEmbedding = newsEmbeddings[i]
+				let isDuplicate = false
+				// Сравнение с previous
+				for (let prevEmb of allPreviousEmbeddings) {
+					let sim
+					if (useFallback) {
+						// Ultra-fallback: JaroWinkler (строковое, независимо от dims)
+						sim = jaroWinklerSimilarity(currentText, '') // Проблема: previous — векторы, не текст. Для простоты: пропускаем deep previous в fallback или используем только cosine если dims match
+						// Лучше: Если previous dims == current, cosine; else Jaro (но previous текст не известен — approx 0.5 или skip)
+						if (
+							currentEmbedding.length === prevEmb.length &&
+							prevEmb.length > 0
+						) {
+							sim = cosineSimilarity(currentEmbedding, prevEmb)
+						} else {
+							sim = jaroWinklerSimilarity(currentText, currentText) // Self=1, но для previous approx low; на практике: используем 0.5 threshold adjust или log warn
+							console.warn(
+								`Dims mismatch for previous embedding ${i}, using Jaro approx: ${sim}`
+							)
+							sim = 0.5 // Conservative: не считать дубликатом если mismatch
+						}
+					} else {
+						sim = cosineSimilarity(currentEmbedding, prevEmb)
+					}
+					if (sim > DUPLICATE_THRESHOLD) {
+						isDuplicate = true
+						break
+					}
+				}
+				// Если не дубликат previous, сравнить с предыдущими уникальными новыми
+				if (!isDuplicate) {
+					for (let j of uniqueIndices) {
+						let prevNewEmb = newsEmbeddings[j]
+						let sim
+						if (useFallback) {
+							sim = computeTfIdfSimilarity(i, j)
+						} else {
+							sim = cosineSimilarity(currentEmbedding, prevNewEmb)
+						}
+						if (sim > DUPLICATE_THRESHOLD) {
+							isDuplicate = true
+							break
+						}
+					}
+				}
+				if (!isDuplicate) {
+					uniqueIndices.add(i)
+					uniqueNews.push({ ...currentNews, tempIndex: i }) // Сохраняем оригинал + index для tfidf
+					uniqueEmbeddings.push(currentEmbedding)
+					allPreviousEmbeddings.push(currentEmbedding) // Для следующих
+				}
+			}
+			if (uniqueNews.length === 0) {
+				return res.json({
+					uniqueNews: [],
+					totalProcessed: news.length,
+					uniqueCount: 0,
+					fallbackUsed: useFallback,
+				})
+			}
+			// Классификация для уникальных (параллельно, но embeddings готовы — просто sort)
+			const classifiedNews = uniqueNews.map(newsItem => {
+				try {
+					const embIndex = newsItem.tempIndex
+					const emb = newsEmbeddings[embIndex]
+					let similarities
+					if (useFallback || categoryEmbeddings.length === 0) {
+						// Keyword fallback
+						similarities = keywordTopCategories(newsTexts[embIndex], categories)
+					} else {
+						const sims = categoryEmbeddings.map((catEmb, idx) =>
+							cosineSimilarity(emb, catEmb)
+						)
+						similarities = categories
+							.map((cat, idx) => ({ category: cat, similarity: sims[idx] }))
+							.sort((a, b) => b.similarity - a.similarity)
+							.slice(0, 3)
+							.map(s => s.category)
+					}
+					return { ...newsItem, topCategories: similarities }
+				} catch (error) {
+					console.error(
+						`Classification error for news ${newsItem.tempIndex}: ${error.message}`
+					)
+					return { ...newsItem, topCategories: [] }
+				}
+			})
+			// Суммаризация уникальных (параллельно с limit)
+			const summarizedPromises = classifiedNews.map(async newsItem => {
+				try {
+					const text = getNewsText(newsItem)
+					const summary = await summarizeText(text)
+					delete newsItem.tempIndex // Cleanup
+					return { ...newsItem, summary }
+				} catch (error) {
+					console.error(`Summary error for news: ${error.message}`)
+					delete newsItem.tempIndex
+					const text = getNewsText(newsItem)
+					const fallbackSentences = text.match(/[^\.!\?]+[\.!\?]+/g) || [text]
+					const fallback = fallbackSentences
+						.slice(0, MAX_SUMMARY_SENTENCES)
+						.join(' ')
+						.trim()
+					const truncated =
+						fallback.length > MAX_SUMMARY_LENGTH
+							? fallback.slice(0, MAX_SUMMARY_LENGTH - 3).trim() + '...'
+							: fallback
+					return { ...newsItem, summary: truncated }
+				}
+			})
+			const summarizedNews = await Promise.all(summarizedPromises)
+			// Формируем embeddingsForDB (только уникальные)
+			const embeddingsForDB = uniqueEmbeddings
+			// Возврат: без embeddings в основном (для БД optional)
+			const responseData = summarizedNews.map(({ tempIndex, ...rest }) => rest) // Cleanup если остался
+			res.json({
+				uniqueNews: responseData,
+				totalProcessed: news.length,
+				uniqueCount: summarizedNews.length,
+				fallbackUsed: useFallback,
+				embeddingsForDB, // Для сохранения в БД как previous
+			})
+		}
+		// Эндпоинт
+		app.post('/process-news', async (req, res) => {
+			try {
+				await processNews(req, res)
+			} catch (error) {
+				console.error('Processing error:', error)
+				res
+					.status(500)
+					.json({ error: 'Internal server error', details: error.message })
+			}
+		})
+		app.listen(port, () => {
+			console.log(`Server running on http://localhost:${port}`)
+			console.log(
+				'Use POST /process-news with {news: [...], categories: [...], previousEmbeddings: [[...]]}'
+			)
+		})
 	}
-	if (uniqueNews.length === 0) return []
-	// Шаг 4: Топ-категории для уникальных (параллельно)
-	const categoriesPromises = uniqueNews.map(news =>
-		getTopCategories(news, categoryEmbeddings, categories, useFallback)
-	)
-	const topCategoriesArray = await Promise.all(categoriesPromises)
-	// Шаг 5: Параллельная суммаризация уникальных
-	const summarizePromises = uniqueNews.map(news => summarizeNews(news))
-	const summaries = await Promise.all(summarizePromises)
-	// Шаг 6: Формируем новый массив с метаданными
-	const processed = summaries.map((summary, idx) => ({
-		summary,
-		topCategories: topCategoriesArray[idx],
-		originalIndex: uniqueIndices[idx], // Опционально, для трекинга
-	}))
-	return processed
 }
-// Эндпоинт
-app.post('/process-news', async (req, res) => {
-  try {
-    const { newsArray, categories = [], previousEmbeddings = [] } = req.body;
-    
-    if (!newsArray || !Array.isArray(newsArray)) {
-      return res.status(400).json({ error: 'newsArray обязателен (массив строк)' });
-    }
-    if (categories.length === 0) {
-      console.warn('categories пустой — топ-категории будут []');
-    }
-    const processed = await processNewsArray(newsArray, categories, previousEmbeddings);
-    res.json({ 
-      originalLength: newsArray.length,
-      uniqueLength: processed.length,
-      fallbackUsed: useFallback, // Для отладки
-      data: processed 
-    });
-  } catch (error) {
-    console.error('Общая ошибка:', error);
-    res.status(500).json({ error: 'Ошибка обработки: ' + error.message });
-  }
-});
-app.listen(PORT, () => {
-  console.log(`Сервер на http://localhost:${PORT}`);
-  console.log('Пример запроса: POST /process-news с {newsArray: [...], categories: [...], previousEmbeddings: [[...], ...]}');
-});
+
+export default TimeService()

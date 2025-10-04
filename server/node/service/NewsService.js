@@ -1,5 +1,3 @@
-import News from '../models/News.js'
-
 const { Pool } = require('pg')
 const pool = new Pool({
 	

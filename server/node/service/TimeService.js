@@ -1,4 +1,10 @@
 import FactoryService from './FactoryService.js'
+import { cosineSimilarity, initTfIdf, computeTfIdfSimilarity, jaroWinklerSimilarity, getEmbeddingsWithFallback } from '../helpers/embeddingsHelper.js'
+import { getNewsText, keywordTopCategories, summarizeText } from '../helpers/summarizationHelper.js'
+import { NEWS_CONFIG } from './helpers/config.js'
+import pLimit from 'p-limit' // Для concurrency в суммаризации
+// Hardcoded категории (можно вынести в config, как в вашем примере)
+const categories = ['Политика', 'Экономика', 'Спорт', 'Технологии', 'Культура'];
 
 class TimeService {
 	async factoryNews() {
@@ -43,21 +49,182 @@ class TimeService {
 			}
 		}
 
+		const news = newsList.flat().map(item => {
+			if (typeof item === 'string') {
+				return { title: item, content: '', url: '' } // Нормализация строки в объект
+			}
+			return item // Уже объект {title, content?, url?}
+		})
+
+		let previousEmbeddings = []
+
+				const processNewsLocal = async (inputNews, inputCategories, inputPreviousEmbeddings) => {
+			let localUseFallback = false;
+			const { news: inputNewsLocal, categories: inputCategoriesLocal, previousEmbeddings: inputPreviousEmbeddingsLocal } = { news: inputNews, categories: inputCategories, previousEmbeddings: inputPreviousEmbeddings };
+			if (!inputNewsLocal || !Array.isArray(inputNewsLocal)) {
+				throw new Error('Invalid input: news must be an array');
+			}
+			const newsTexts = inputNewsLocal.map(getNewsText);
+			const allTextsForTfIdf = [...newsTexts, ...inputCategoriesLocal];
+			let newsEmbeddings = [];
+			let categoryEmbeddings = [];
+			try {
+				if (inputCategoriesLocal.length > 0) {
+					categoryEmbeddings = await getEmbeddingsWithFallback(inputCategoriesLocal, newsTexts.length);
+				}
+				newsEmbeddings = await getEmbeddingsWithFallback(newsTexts, 0);
+				if (newsEmbeddings.length > 0 && newsEmbeddings[0].length !== 384) {
+					localUseFallback = true;
+					initTfIdf(allTextsForTfIdf);
+					console.log('Using TF-IDF fallback for embeddings');
+				}
+			} catch (error) {
+				console.error('Global embedding error, using full fallback:', error.message);
+				localUseFallback = true;
+				initTfIdf(allTextsForTfIdf);
+				newsEmbeddings = newsTexts.map((_, i) => {
+					const vec = [];
+					globalTfIdf.tfidfs(i, (idx, measure) => vec.push(measure || 0));
+					return vec;
+				});
+								categoryEmbeddings = inputCategoriesLocal.map((_, i) => {
+					const vec = [];
+					globalTfIdf.tfidfs(newsTexts.length + i, (idx, measure) => vec.push(measure || 0));
+					return vec;
+				});
+			}
+			// Дедупликация
+			const uniqueNews = [];
+			const uniqueIndices = new Set();
+			const allPreviousEmbeddings = [...inputPreviousEmbeddingsLocal];
+			const uniqueEmbeddings = [];
+			for (let i = 0; i < inputNewsLocal.length; i++) {
+				if (uniqueIndices.has(i)) continue;
+				const currentNews = inputNewsLocal[i];
+				const currentText = newsTexts[i];
+				let currentEmbedding = newsEmbeddings[i];
+				let isDuplicate = false;
+				// Сравнение с previous
+				for (let prevEmb of allPreviousEmbeddings) {
+					let sim;
+					if (localUseFallback) {
+						if (currentEmbedding.length === prevEmb.length && prevEmb.length > 0) {
+							sim = cosineSimilarity(currentEmbedding, prevEmb);
+						} else {
+							console.warn(`Dims mismatch for previous embedding ${i}, using conservative sim`);
+							sim = 0.5; // Не считать дубликатом
+						}
+					} else {
+						sim = cosineSimilarity(currentEmbedding, prevEmb);
+					}
+					if (sim > NEWS_CONFIG.DUPLICATE_THRESHOLD) {
+						isDuplicate = true;
+						break;
+					}
+				}
+				if (!isDuplicate) {
+					for (let j of uniqueIndices) {
+						let sim;
+						if (localUseFallback) {
+							sim = computeTfIdfSimilarity(i, j);
+						} else {
+							sim = cosineSimilarity(currentEmbedding, newsEmbeddings[j]);
+						}
+						if (sim > NEWS_CONFIG.DUPLICATE_THRESHOLD) {
+							isDuplicate = true;
+							break;
+						}
+					}
+				}
+			if (!isDuplicate) {
+					uniqueIndices.add(i);
+					uniqueNews.push({ ...currentNews, tempIndex: i });
+					uniqueEmbeddings.push(currentEmbedding);
+					allPreviousEmbeddings.push(currentEmbedding);
+				}
+			}
+			if (uniqueNews.length === 0) {
+				return { uniqueNews: [], totalProcessed: inputNewsLocal.length, uniqueCount: 0, fallbackUsed: localUseFallback, embeddingsForDB: [] };
+			}
+			// Классификация
+			const classifiedNews = uniqueNews.map((newsItem) => {
+				try {
+					const embIndex = newsItem.tempIndex;
+					const emb = newsEmbeddings[embIndex];
+					let topCategories;
+					if (localUseFallback || categoryEmbeddings.length === 0) {
+						topCategories = keywordTopCategories(newsTexts[embIndex], inputCategoriesLocal);
+					} else {
+						const sims = categoryEmbeddings.map((catEmb, idx) => cosineSimilarity(emb, catEmb));
+						topCategories = inputCategoriesLocal.map((cat, idx) => ({ category: cat, similarity: sims[idx] }))
+							.sort((a, b) => b.similarity - a.similarity)
+							.slice(0, 3)
+							.map(s => s.category);
+					}
+					return { ...newsItem, topCategories };
+				} catch (error) {
+					console.error(`Classification error for news ${newsItem.tempIndex}: ${error.message}`);
+					return { ...newsItem, topCategories: [] };
+				}
+			});
+						// Суммаризация (параллельно с p-limit)
+			const summarizeLimit = pLimit(NEWS_CONFIG.LIMIT_CONCURRENCY);
+			const summarizedPromises = classifiedNews.map((newsItem) =>
+				summarizeLimit(async () => {
+					try {
+						const text = getNewsText(newsItem);
+						const summary = await summarizeText(text);
+						delete newsItem.tempIndex;
+						return { ...newsItem, summary };
+					} catch (error) {
+						console.error(`Summary error for news: ${error.message}`);
+						delete newsItem.tempIndex;
+						const text = getNewsText(newsItem);
+						const sentences = text.match(/[^\.!\?]+[\.!\?]+/g) || [text];
+						const fallback = sentences.slice(0, NEWS_CONFIG.MAX_SUMMARY_SENTENCES).join(' ').trim();
+						const truncated = fallback.length > NEWS_CONFIG.MAX_SUMMARY_LENGTH ? fallback.slice(0, NEWS_CONFIG.MAX_SUMMARY_LENGTH - 3).trim() + '...' : fallback;
+						return { ...newsItem, summary: truncated };
+					}
+				})
+			);
+			const summarizedNews = await Promise.all(summarizedPromises);
+			const embeddingsForDB = uniqueEmbeddings;
+			const responseData = summarizedNews.map(({ tempIndex, ...rest }) => rest);
+			return {
+				uniqueNews: responseData,
+				totalProcessed: inputNewsLocal.length,
+				uniqueCount: summarizedNews.length,
+				fallbackUsed: localUseFallback,
+				embeddingsForDB
+			};
+		};
+		// Вызов обработки после сбора новостей (детальная проверка на повторяющиеся элементы)
+		const processed = await processNewsLocal(news, categories, previousEmbeddings);
+		const uniqueNewsList = processed.uniqueNews; // Теперь с topCategories и summary
+		// должна быть проверка новостей после окончания обновления списка можно сортировать через ИИ API.
+		// TODO: Сортировка через ИИ API (например, по релевантности или дате; используйте processed.uniqueNews)
+		const summaryNewsList = []
+		for (let i = 0; i < uniqueNewsList.length; i++) {
+			console.log(uniqueNewsList[i]) // Логирует обработанную новость (с summary, topCategories)
+			summaryNewsList.push(uniqueNewsList[i]) // Заполняем summaryNewsList обработанными (сжатие уже произошло)
+		}
+		// Сжатие новостей происходит через текстовую модель сразу после отработки проверки.
+		// Лишь после сжатия запись в бд.
+		// TODO: Запись uniqueNewsList в БД (если нужно; без примера, так как вы не хотите БД-интеграцию)
+		// Например: await saveToDB(uniqueNewsList, processed.embeddingsForDB); // Сохранить embeddings для future previous
+		console.log(`Processed: ${processed.totalProcessed} total, ${processed.uniqueCount} unique, fallback: ${processed.fallbackUsed}`);
+		return { uniqueNewsList, summaryNewsList, processed }; // Возврат для дальнейшего использования
+	}
+}
+
+export default TimeService()
+
 		// const uniqueNewsList = newsList.filter((news, index, self) =>
 		// 	index === self.findIndex((n) => n.url === news.url || n.title === news.title || n.summary === news.summary)
 		// );
 
 		// должна быть проверка новостей после окончания обновления списка можно сортировать через ИИ API.
 
-		const summaryNewsList = []
-		for (let i = 0; i < uniqueNewsList.length; i++) {
-			console.log(uniqueNewsList[i])
-		}
-
 		// Сжатие новостей происходит через текстовую модель сразу после отработки проверки.
 
 		// Лишь после сжатия запись в бд.
-	}
-}
-
-export default TimeService()

@@ -1,18 +1,3 @@
-const express = require('express')
-const { pool, testConnection } = require('./db') // Импорт из db.js
-const bodyParser = require('body-parser')
-const app = express()
-const PORT = process.env.PORT || 3001 // Отдельный порт от Next.js (который на 3000)
-app.use(bodyParser.json())
-// Тестируем подключение при старте
-testConnection().catch(console.error)
-
-
-
-
-
-
-
 // Пример эндпоинта: GET /users (запрос к БД)
 app.get('/users', async (req, res) => {
 	try {
@@ -34,15 +19,4 @@ app.post('/users', async (req, res) => {
 		console.error('Ошибка вставки:', err)
 		res.status(500).json({ error: 'Ошибка создания', details: err.message })
 	}
-})
-
-// Graceful shutdown (освобождение пула при завершении)
-process.on('SIGINT', async () => {
-	await pool.end()
-	console.log('Пул соединений закрыт')
-	process.exit(0)
-})
-
-app.listen(PORT, () => {
-	console.log(`Backend сервер запущен на http://localhost:${PORT}`)
 })
