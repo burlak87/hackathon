@@ -1,4 +1,4 @@
-const { pool } = require('../config/database.js');
+import { pool } from '../config/database.js'
 /**
  * Запуск миграций для таблицы news
  * - Проверяет существование таблицы.
@@ -67,4 +67,4 @@ async function createTable() {
   ]);
 }
 
-export default runMigrations()
+export default runMigrations

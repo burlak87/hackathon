@@ -3,8 +3,8 @@ import router from './router.js'
 import cors from 'cors'
 import bodyParser from 'body-parser'
 import fileUpload from 'express-fileupload'
-import { testConnection, pool } from './config/database.js'
-import { runMigrations } from './models/News.js'
+import { pool, testConnection } from './config/database.js'
+import runMigrations from './models/News.js'
 
 const PORT = 5000 // process.env.PORT || 5000
 const app = express()
