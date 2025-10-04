@@ -3,69 +3,15 @@
   const activeTags = ref([]),
         activeFilterPost = ref([]),
         appliedTags = ref([]);
-  let statusAllPost = ref(true)
+  let statusAllPost = ref(true),
+      modalStatus = ref(false)
 
   
-  const posts = [
-    {
-      id: new Date(),
-      name: "111",
-      isto: "TG",
-      time: "2",
-      description: "11111111111111111111111111111111",
-      link: "https://google.com/",
-      tag: "TG"
-    },
-    {
-      id: new Date(),
-      name: "222",
-      isto: "TG",
-      time: "2",
-      description: "11111111111111111111111111111111",
-      link: "https://google.com/",
-      tag: "WEB"
-    },
-    {
-      id: new Date(),
-      name: "333",
-      isto: "TG",
-      time: "2",
-      description: "11111111111111111111111111111111",
-      link: "https://google.com/",
-      tag: "NEWSAPI"
-    },
-    {
-      id: new Date(),
-      name: "444",
-      isto: "TG",
-      time: "2",
-      description: "11111111111111111111111111111111",
-      link: "https://google.com/",
-      tag: "TASS"
-    },
-    {
-      id: new Date(),
-      name: "555",
-      isto: "TG",
-      time: "2",
-      description: "11111111111111111111111111111111",
-      link: "https://google.com/",
-      tag: "RIA"
-    },
-    {
-      id: new Date(),
-      name: "111",
-      isto: "TG",
-      time: "2",
-      description: "11111111111111111111111111111111",
-      link: "https://google.com/",
-      tag: "TG"
-    },
-  ]
+  const posts = []
 
   async function allPosts() {
-    //let promis = await fetch("http://localhost:5000/posts")
-    //posts.value = JSON.parse(promis.json())
+    let promis = await fetch("http://localhost:5000/posts")
+    posts.value = JSON.parse(promis.json())
   }
 
   onMounted(() => {
@@ -102,10 +48,15 @@
       })
     })
   }
+
+  function openModalFilters() {
+
+  }
 </script>
 
 
 <template>
+    <ModalMobail v-if="modalStatus"/>
     <header>
       <h1>HACKATHON <span>NEWS ///</span></h1>
       <input type="text" placeholder="Введите ключевые слова или фразы...">
@@ -114,6 +65,9 @@
       <section class="title">
         <h1>Hackathon</h1>
         <h2>NEWS</h2>
+      </section>
+      <section class="filter-button">
+        <button @click="openModalFilters">ФИЛЬТРЫ И НАСТРОЙКИ</button>
       </section>
       <section class="content">
         <article class="filters">
@@ -206,6 +160,8 @@
 
 <style  lang="scss">
 
+  
+
 
   header {
     display: flex;
@@ -256,6 +212,10 @@
     justify-content: center;
     align-items: center;
     gap:50px;
+
+    .filter-button {
+      display: none;
+    }
 
     .title {
       display: flex;
@@ -551,5 +511,260 @@
       }
     }
 
+  }
+
+  @media screen and (max-width:1500px) {
+    .filters-save {
+          width: 100%;
+          >button {
+            background-color: inherit;
+            border: 1px solid white;
+            font-size: 6px !important;
+            padding: 10px 8px;
+            color:white;
+            border-radius:15px;
+            text-align: start;
+            >span {
+              font-size: 10px !important;
+              text-align: start;
+            }
+          }
+        }
+  }
+
+
+  @media screen and (max-width:1350px) {
+    main {
+      padding: 100px 40px !important;
+    }
+    .title {
+      h1 {
+        font-size: 45px !important;
+      }
+
+      h2 {
+        font-size: 60px !important;
+      }
+    }
+
+    .filter-button {
+      display: none !important; 
+    }
+
+    .news-title {
+
+      >h2 {
+        font-size: 20px !important;
+        
+      }
+    }
+
+    .filters {
+      label {
+        font-size: 6px !important;
+      }
+    }
+
+    header {
+      h1 {
+        font-size: 12px !important;
+      }
+    }
+  }
+
+  @media screen and (max-width:1000px) {
+    header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap:30px;
+      padding: 15px 40px;
+    }
+
+    .filter-button {
+      display: flex !important;
+      justify-content: center !important;
+      align-items: center !important;
+
+      >button {
+        background-color: #6A50D8;
+        color:white;
+        font-size: 15px;
+        border: none;
+        border-radius: 100px;
+        padding: 15px 30px;
+      }
+    }
+
+    .filters {
+      display: none !important;
+    }
+
+    .title {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+
+
+      h1 {
+        width: 100% !important;
+      }
+
+      h2 {
+        width: 100% !important;
+      }
+    }
+
+    .content {
+      justify-content: center !important;
+      width: 100% !important;
+    }
+
+    .news-title {
+      width: 100% !important; 
+      >h2 {
+        text-align: center !important;
+      }
+
+      >.news-filters {
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        align-items: center !important;
+        gap:20px !important;
+        text-align: center !important;
+        width: 100% !important;
+      }
+    }
+  }
+
+  @media screen and (max-width:840px) {
+    .title {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+
+
+      h1 {
+        width: 100% !important;
+        text-align: center !important;
+        font-size: 30px !important;
+      }
+
+      h2 {
+        width: 100% !important;
+        text-align: center !important;
+        font-size: 40px !important;
+      }
+    }
+
+    footer {
+    padding: 50px 40px !important;
+    gap:40px !important;
+
+    >.footer-info {
+      gap:30px !important;
+      >article {
+        >h1 {
+          font-size: 8px !important;
+        }
+        >p {
+          font-size: 5px !important;
+        }
+      }
+
+      >.footer-info__article-copy {
+         >p {
+          font-size: 5px !important;
+
+          >.copy {
+            font-size: 15px !important;
+          }
+          }
+        
+        
+      }
+
+    }
+
+    .footer-contact {
+
+      >h2 {
+        font-size: 8px !important;
+      }
+      >section {
+        >p {
+          font-size: 6px;
+        }
+      }
+    }
+  }
+  }
+
+
+  @media screen and (max-width:600px) {
+    footer {
+      flex-direction: column !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap:40px !important;
+    }
+
+    .footer-contact {
+      width: 100% !important;
+    }
+
+    .footer-info {
+      width: 100% !important;
+    }
+
+    .title {
+      h1 {
+        font-size: 20px !important;
+      }
+
+      h2 {
+        font-size: 30px !important;
+      }
+
+    }
+
+    main {
+      padding: 50px 15px !important;
+    }
+
+    header {
+      padding: 15px 20px !important;
+      h1 {
+        font-size: 10px !important;
+      }
+
+      input {
+        width: 200px !important;
+
+        >&::placeholder {
+          font-size: 3px !important;
+        }
+      }
+    }
+
+    .news-title {
+
+      >h2 {
+        font-size: 10px !important;
+        text-align: center !important;
+      }
+    }
+
+    .news-filters {
+        >p {
+          font-size: 6px !important;
+        }
+      }
   }
 </style>

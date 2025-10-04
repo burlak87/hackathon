@@ -45,4 +45,16 @@
         padding-bottom: 10px;
         box-sizing: border-box;
     }
+
+    @media screen and (max-width:1450px) {
+        input {
+            width: 20px !important;
+            height: 20px !important;
+        }
+
+        input:checked::after {
+            width: 20px !important;
+            height: 20px !important;
+        }
+    }
 </style>
