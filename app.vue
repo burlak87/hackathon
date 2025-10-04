@@ -1,15 +1,56 @@
 <script setup>
 
-  const activeTags = ref([])
+  const activeTags = ref([]),
+        activeFilterPost = ref([]),
+        appliedTags = ref([]);
+  let statusAllPost = ref(true)
 
-  const obj = [
+  
+  const posts = [
     {
       id: new Date(),
       name: "111",
       isto: "TG",
       time: "2",
       description: "11111111111111111111111111111111",
-      link: "https://google.com/"
+      link: "https://google.com/",
+      tag: "TG"
+    },
+    {
+      id: new Date(),
+      name: "222",
+      isto: "TG",
+      time: "2",
+      description: "11111111111111111111111111111111",
+      link: "https://google.com/",
+      tag: "WEB"
+    },
+    {
+      id: new Date(),
+      name: "333",
+      isto: "TG",
+      time: "2",
+      description: "11111111111111111111111111111111",
+      link: "https://google.com/",
+      tag: "NEWSAPI"
+    },
+    {
+      id: new Date(),
+      name: "444",
+      isto: "TG",
+      time: "2",
+      description: "11111111111111111111111111111111",
+      link: "https://google.com/",
+      tag: "TASS"
+    },
+    {
+      id: new Date(),
+      name: "555",
+      isto: "TG",
+      time: "2",
+      description: "11111111111111111111111111111111",
+      link: "https://google.com/",
+      tag: "RIA"
     },
     {
       id: new Date(),
@@ -17,48 +58,49 @@
       isto: "TG",
       time: "2",
       description: "11111111111111111111111111111111",
-      link: "https://google.com/"
-    },
-    {
-      id: new Date(),
-      name: "111",
-      isto: "TG",
-      time: "2",
-      description: "11111111111111111111111111111111",
-      link: "https://google.com/"
-    },
-    {
-      id: new Date(),
-      name: "111",
-      isto: "TG",
-      time: "2",
-      description: "11111111111111111111111111111111",
-      link: "https://google.com/"
-    },
-    {
-      id: new Date(),
-      name: "111",
-      isto: "TG",
-      time: "2",
-      description: "11111111111111111111111111111111",
-      link: "https://google.com/"
+      link: "https://google.com/",
+      tag: "TG"
     },
   ]
 
+  async function allPosts() {
+    //let promis = await fetch("http://localhost:5000/posts")
+    //posts.value = JSON.parse(promis.json())
+  }
+
+  onMounted(() => {
+    allPosts()
+  })
+  
 
   function addTag(el) {
     if(activeTags.value.indexOf(el) == -1) {
       activeTags.value.push(el)
-      console.log(activeTags.value)
     } else {
       activeTags.value.splice(activeTags.value.indexOf(el), 1)
-      console.log(activeTags.value)
     }
     
   }
 
   function filtration() {
+    
+    if(!activeTags.value.length) {
+      statusAllPost.value = true
+      appliedTags.value = []
+    } else {
+      statusAllPost.value = false
+      appliedTags.value = [... activeTags.value]
+    }
 
+    activeFilterPost.value = []
+
+    activeTags.value.forEach((tag) => {
+      posts.forEach((post) => {
+        if(tag == post.tag) {
+          activeFilterPost.value.push(post)
+        }
+      })
+    })
   }
 </script>
 
@@ -128,13 +170,16 @@
             <h2>свежие новости</h2>
             <article class="news-filters">
               <p>выбранные фильтры</p>
-              <section v-if="activeFilter">
-                <p  v-for="i in activeTags">{{ i }}</p>
+              <section v-if="!statusAllPost">
+                <p v-for="i in appliedTags">{{ i }}</p>
               </section>
             </article>
           </section>
-          <section class="news-list" >
-            <NewsBlock v-for="i in obj"  :key="i.id" :obj="i"/>
+          <section v-if="statusAllPost" class="news-list" >
+            <NewsBlock v-for="i in posts"  :key="i.id" :obj="i"/>
+          </section>
+          <section v-else class="news-list" >
+            <NewsBlock v-for="i in activeFilterPost"  :key="i.id" :obj="i"/>
           </section>
         </article>
       </section>
@@ -351,7 +396,9 @@
 
             >p {
               font-size: 10px;
+              
             }
+            
 
             >section {
               display: flex;
@@ -363,6 +410,10 @@
 
               >p {
                 font-size: 6px;
+                padding: 10px 15px;
+                background-color: inherit;
+                border: 2px solid black;
+                border-radius: 100px;
               }
             }
           }
