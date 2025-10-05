@@ -1,4 +1,4 @@
-import TimeService from './service/TimeService'
+import TimeService from './service/TimeService.js'
 import cron from 'node-cron'
 
 cron.schedule('0 * * * *', () =>{ 

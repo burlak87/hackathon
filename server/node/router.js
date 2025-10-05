@@ -4,7 +4,7 @@ import NewsController from './controller/NewsController.js'
 
 const router = new Router()
 
-router.get('/posts', NewsController.getPosts)
+router.get('/posts', NewsController.getNews)
 
 // router.post('/notification', NotificationController.sending) // Отправка данных фильтрации тгботу, чтобы он мог присылать инфу в тг
 // router.post('/notificationByAuthor', NotificationController.sending) // Отправка данных в специализированного бота для авторов сервиса 

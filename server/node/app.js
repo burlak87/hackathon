@@ -6,7 +6,7 @@ import fileUpload from 'express-fileupload'
 import { pool, testConnection } from './config/database.js'
 import runMigrations from './models/News.js'
 
-const PORT = 5000 // process.env.PORT || 5000
+const PORT = process.env.PORT || 3001
 const app = express()
 
 app.use(bodyParser.json())

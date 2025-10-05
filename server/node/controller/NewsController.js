@@ -1,10 +1,10 @@
 import NewsService from '../service/NewsService.js'
 
 class NewsController {
-  async getPosts(req, res) {
+  async getNews(req, res) {
     try {
       const { category, source } = req.query
-      const posts = await NewsService.getPosts({ category, source })
+      const posts = await NewsService.getNews({ category, source })
       res.json(posts)
     } catch (e) {
       console.error(e)
