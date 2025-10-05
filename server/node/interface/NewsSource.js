@@ -11,4 +11,4 @@ class NewsSource {
   }
 }
 
-export default new NewsSource
+export default NewsSource

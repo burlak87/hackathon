@@ -1,11 +1,5 @@
 import { pool } from '../config/database.js'
-/**
- * Запуск миграций для таблицы news
- * - Проверяет существование таблицы.
- * - Если существует и заполнена (COUNT > 0) — пропускает.
- * - Если не существует или пуста — создаёт таблицу + индексы.
- * @returns {Promise<void>}
- */
+
 async function runMigrations() {
 	try {
 		const tableCheckQuery = `
@@ -45,16 +39,18 @@ async function runMigrations() {
 
 async function createTable() {
   const createTableQuery = `
-    CREATE TABLE news (
+    CREATE TABLE IF NOT EXISTS news (
       id SERIAL PRIMARY KEY,
       title TEXT NOT NULL,
       summary_text TEXT NOT NULL,
       url TEXT,
       date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
       source TEXT NOT NULL,
+      category TEXT,
       categories JSONB DEFAULT '[]'::JSONB
+      embeddings JSONB DEFAULT '[]'::JSONB
     )
-  `;
+  `
   await pool.query(createTableQuery);
 
   const index1 = `CREATE INDEX IF NOT EXISTS idx_news_source_date ON news (source, date DESC)`;

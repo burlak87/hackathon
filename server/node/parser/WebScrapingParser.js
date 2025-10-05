@@ -2,13 +2,12 @@ import axios from "axios";
 import NewsSource from "../interface/NewsSource.js";
 import cheerio from "cheerio";
 import { searchLast } from "../helpers/searchLast.js"
-// Опционально: import { insertNews } from "../helpers/newsHelpers.js"; // Для сохранения
 
 class WebScrapingParser extends NewsSource {
 	constructor(url, selectors) {
 		super('Web Scraping')
 		this.url = url
-		this.selectors = selectors // Ожидаем: { title, link, summary, date } — date обязателен для фильтра
+		this.selectors = selectors
 	}
 
 	async fetchNews(options = { limit: 10 }) {
@@ -69,14 +68,6 @@ class WebScrapingParser extends NewsSource {
 					lastDate.toISOString().split('T')[0]
 				}.`
 			)
-			// Опционально: Сохранить в БД сразу после парсинга (раскомментируйте, если нужно)
-			// try {
-			//   const inserted = await insertNews(news);
-			//   console.log(`Сохранено ${inserted.length} новостей в БД.`);
-			// } catch (saveError) {
-			//   console.error('Ошибка сохранения в БД:', saveError.message);
-			//   // Не падает fetchNews — возвращаем news для ручного сохранения
-			// }
 			return news
 		} catch (error) {
 			console.error('Scraping error: ', error.message)

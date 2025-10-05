@@ -22,6 +22,7 @@ async function startApp() {
 		await runMigrations()
 		console.log('База данных инициализирована')
 		app.listen(PORT, () => console.log('SERVER STARTED ON PORT ' + PORT))
+		import('./schedule.js').then(() => console.log('Cron scheduler started'))
 	} catch (error) {
 		console.error('Инициализация БД провалилась', error.message)
 		process.exit(1)

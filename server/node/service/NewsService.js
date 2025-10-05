@@ -1,8 +1,8 @@
 import { pool } from '../config/database.js'
-
+    
 class NewsService {
 	async getNews(filters) {
-		const { category, source } = filters
+		const { category, source, time } = filters
 		let query = 'SELECT * FROM news'
 		const conditions = []
 		const values = []
@@ -13,6 +13,9 @@ class NewsService {
 		if (source) {
 			values.push(source)
 			conditions.push(`source = $${values.length}`)
+		}
+		if (time) {
+			conditions.push(`created_at <= NOW() - INTERVAL '${time} hours'`)
 		}
 		if (conditions.length > 0) {
 			query += ' WHERE ' + conditions.join(' AND ')

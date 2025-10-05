@@ -57,12 +57,6 @@ class NewsApiParser extends NewsSource {
 					lastDate.toISOString().split('T')[0]
 				}.`
 			)
-			// try {
-			//   const inserted = await insertNews(news);
-			//   console.log(`Сохранено ${inserted.length} новостей в БД.`);
-			// } catch (saveError) {
-			//   console.error('Ошибка сохранения в БД:', saveError.message);
-			// }
 			return news
 		} catch (error) {
 			console.error('NewsAPI error: ', error.message)
