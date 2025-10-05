@@ -1,5 +1,11 @@
 <script setup>
+    onMounted(() => {
+        document.body.style.overflow="hidden"
+    })
 
+    onBeforeUnmount(() => {
+        document.body.style.overflow="scroll"
+    })
 </script>
 
 <template>
@@ -11,19 +17,19 @@
                 <h3>ВЫБЕРИТЕ <br>ИСТОЧНИКИ <br>НОВОСТЕЙ</h3>
                 <form name="form_">
                     <article>
-                        <InputCheckBox @change-tags="(tag) => {$emit('tagAdd', tag)}" :tag="'NEWSAPI'" />
+                        <InputCheckBox @change-tags="(sours) => {$emit('addSours', sours)}" :tag="'NEWSAPI'" />
                         <label>
                         NEWSAPI <br>МЕЖДУНАРОДНЫЕ НОВОСТИ
                         </label>
                     </article>
                     <article>
-                        <InputCheckBox @change-tags="(tag) => {$emit('tagAdd', tag)}" :tag="'RIA'"/>
+                        <InputCheckBox @change-tags="(sours) => {$emit('addSours', sours)}" :tag="'RIA'"/>
                         <label>
                         РИА НОВОСТИ <br>ОФИЦИАЛЬНАЯ ХРОНИКА
                         </label>
                     </article>
                     <article>
-                        <InputCheckBox @change-tags="(tag) => {$emit('tagAdd', tag)}" :tag="'TASS'"/>
+                        <InputCheckBox @change-tags="(sours) => {$emit('addSours', sours)}" :tag="'TASS'"/>
                         <label>
                         ТАСС <br> ГЛУБОКАЯ АНАЛИТИКА
                         </label>
@@ -31,22 +37,57 @@
                 </form>
                 </article>
                 <article class="filters-optional">
-                <h3>ДОПОЛНИТЕЛЬНЫЕ <br>ИСТОЧНИКИ</h3>
-                <form name="form_">
-                    <article>
-                        <InputCheckBox @change-tags="(tag) => {$emit('tagAdd', tag)}" :tag="'TG'"/>
-                        <label>
-                        ТЕЛЕГРАМ-КАНАЛЫ <br>ЖИВИЕ ОБСУЖДЕНИЯ
-                        </label>
-                    </article>
-                    <article>
-                        <InputCheckBox @change-tags="(tag) => {$emit('tagAdd', tag)}" :tag="'WEB'"/>
-                        <label>
-                        ВЕБ-САЙТЫ <br>ПЕРВОИСТОЧНИКИ
-                        </label>
-                    </article>
-                </form>
+                    <h3>ДОПОЛНИТЕЛЬНЫЕ <br>ИСТОЧНИКИ</h3>
+                    <form name="form_">
+                        <article>
+                            <InputCheckBox @change-tags="(sours) => {$emit('addSours', sours)}" :tag="'TG'"/>
+                            <label>
+                            ТЕЛЕГРАМ-КАНАЛЫ <br>ЖИВИЕ ОБСУЖДЕНИЯ
+                            </label>
+                        </article>
+                        <article>
+                            <InputCheckBox @change-tags="(sours) => {$emit('addSours', sours)}" :tag="'WEB'"/>
+                            <label>
+                            ВЕБ-САЙТЫ <br>ПЕРВОИСТОЧНИКИ
+                            </label>
+                        </article>
+                    </form>
                 </article>
+                <article class="filters-optional">
+              <h3>КАТЕГОРИИ <br>ПОИСКА</h3>
+              <form name="form_">
+                <article>
+                    <InputCheckBox @change-tags="(categori) => {$emit('addCategori', categori)}" :tag="'Спорт'"/>
+                    <label>
+                      СПОРТ
+                    </label>
+                </article>
+                <article>
+                    <InputCheckBox @change-tags="(categori) => {$emit('addCategori', categori)}" :tag="'Политика'"/>
+                    <label>
+                     ПОЛИТИКА
+                    </label>
+                </article>
+                <article>
+                    <InputCheckBox @change-tags="(categori) => {$emit('addCategori', categori)}" :tag="'Безопасность'"/>
+                    <label>
+                     БЕЗОПАСНОСТЬ
+                    </label>
+                </article>
+                <article>
+                    <InputCheckBox @change-tags="(categori) => {$emit('addCategori', categori)}" :tag="'Война'"/>
+                    <label>
+                     Боевые действия
+                    </label>
+                </article>
+                <article>
+                    <InputCheckBox @change-tags="(categori) => {$emit('addCategori', categori)}" :tag="'Экономика'"/>
+                    <label>
+                     Экономика
+                    </label>
+                </article>
+              </form>
+            </article>
             </nav>
             <section class="filters-save">
                 <button @click.prevent="$emit('filtrAdd')">Сохранить и продолжить <span>→</span></button>
@@ -56,6 +97,7 @@
 </template>
 
 <style scoped lang="scss">
+   
     .owerflou {
         width: 100vw;
         height: 100vh;
@@ -73,7 +115,7 @@
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        gap: 50px;
+        gap: 30px;
         width: fit-content;
         box-sizing: border-box;
         background-color: #6A50D8;
@@ -92,14 +134,14 @@
           flex-direction: column;
           justify-content: start;
           align-items: start;
-          gap:50px;
+          gap:30px;
 
           >article {
             display: flex;
             flex-direction: column;
             justify-content: start;
             align-items: start;
-            gap:20px;
+            gap:15px;
 
             >h3 {
               font-size: 10px;
@@ -113,7 +155,7 @@
               flex-direction: column;
               justify-content: start;
               align-items: start;
-              gap:15px;
+              gap:10px;
 
               >article {
                 display:flex;

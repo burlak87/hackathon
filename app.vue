@@ -1,56 +1,123 @@
 <script setup>
 
-  const activeTags = ref([]),
-        activeFilterPost = ref([]),
+  const activeTags = ref([[],[]]),
         appliedTags = ref([]);
-  let statusAllPost = ref(true),
-      modalStatus = ref(false)
+  let  modalStatus = ref(false)
 
   
-  const posts = []
+  const posts = [
+    {
+    id: new Date(),
+    name: "Искусственный интеллект научился предсказывать погоду с 95% точностью",
+    isto: "Telegramm",
+    time: 2,
+    description: "Новая нейросеть от DeepMind прогнозирует погодные условия на 10 дней вперед. Алгоритм анализирует спутниковые данные в реальном времени и превосходит традиционные методы.",
+    link: "#"
+  },
+   {
+    id: new Date(),
+    name: "Искусственный интеллект научился предсказывать погоду с 95% точностью",
+    isto: "Telegramm",
+    time: 2,
+    description: "Новая нейросеть от DeepMind прогнозирует погодные условия на 10 дней вперед. Алгоритм анализирует спутниковые данные в реальном времени и превосходит традиционные методы.",
+    link: "#"
+  },
+   {
+    id: new Date(),
+    name: "Искусственный интеллект научился предсказывать погоду с 95% точностью",
+    isto: "Telegramm",
+    time: 2,
+    description: "Новая нейросеть от DeepMind прогнозирует погодные условия на 10 дней вперед. Алгоритм анализирует спутниковые данные в реальном времени и превосходит традиционные методы.",
+    link: "#"
+  },
+   {
+    id: new Date(),
+    name: "Искусственный интеллект научился предсказывать погоду с 95% точностью",
+    isto: "Telegramm",
+    time: 2,
+    description: "Новая нейросеть от DeepMind прогнозирует погодные условия на 10 дней вперед. Алгоритм анализирует спутниковые данные в реальном времени и превосходит традиционные методы.",
+    link: "#"
+  },
+   {
+    id: new Date(),
+    name: "Искусственный интеллект научился предсказывать погоду с 95% точностью",
+    isto: "Telegramm",
+    time: 2,
+    description: "Новая нейросеть от DeepMind прогнозирует погодные условия на 10 дней вперед. Алгоритм анализирует спутниковые данные в реальном времени и превосходит традиционные методы.",
+    link: "#"
+  },
+   {
+    id: new Date(),
+    name: "Искусственный интеллект научился предсказывать погоду с 95% точностью",
+    isto: "Telegramm",
+    time: 2,
+    description: "Новая нейросеть от DeepMind прогнозирует погодные условия на 10 дней вперед. Алгоритм анализирует спутниковые данные в реальном времени и превосходит традиционные методы.",
+    link: "#"
+  },
+]
 
   async function allPosts() {
     let promis = await fetch("http://localhost:5000/posts")
-    posts.value = JSON.parse(promis.json())
+    //posts.value = JSON.parse(promis.json())
+  }
+
+  async function filterPost(tags) {
+    let promis = await fetch("http://localhost:5000/posts", {
+      method: "GET",
+      headers: {
+          'Content-Type': 'application/json;charset=utf-8'
+      },
+      body: JSON.parse(tags)
+    })
+
+    //posts.value = promis.json()
   }
 
   onMounted(() => {
-    allPosts()
+    //allPosts()
   })
   
 
-  function addTag(el) {
-    if(activeTags.value.indexOf(el) == -1) {
-      activeTags.value.push(el)
+  function addSours(el) {
+    if(activeTags.value[0].indexOf(el) == -1) {
+      activeTags.value[0].push(el)
     } else {
-      activeTags.value.splice(activeTags.value.indexOf(el), 1)
+      activeTags.value[0].splice(activeTags.value.indexOf(el), 1)
     }
-    console.log(activeTags.value)
+  }
+
+  function addCategori(el) {
+    if(activeTags.value[1].indexOf(el) == -1) {
+      activeTags.value[1].push(el)
+    } else {
+      activeTags.value[1].splice(activeTags.value.indexOf(el), 1)
+    }
+
+    
   }
 
   function filtration() {
-    modalStatus.value = false
-    console.log(activeTags.value)
-    if(!activeTags.value.length) {
-      statusAllPost.value = true
-      appliedTags.value = []
-    } else {
-      statusAllPost.value = false
-      appliedTags.value = [... activeTags.value]
+
+    if(modalStatus.value) {
+      modalStatus.value = false
     }
 
-    activeFilterPost.value = []
+    if(!activeTags.value[0].length || !activeTags.value[1].length) {
+      //allPosts()
+      appliedTags.value = []
+      return 0;
+    } else {
+      appliedTags.value = [...activeTags.value[0]]
+      appliedTags.value.push(...activeTags.value[1])
+      //filterPost()
+    }
 
-    activeTags.value.forEach((tag) => {
-      posts.forEach((post) => {
-        if(tag == post.tag) {
-          activeFilterPost.value.push(post)
-        }
-      })
-    })
   }
 
+
+
   function openModalFilters() {
+
     if(modalStatus.value) {
       modalStatus.value = false
     } else {
@@ -62,7 +129,7 @@
 
 <template>
     
-    <ModalMobail v-if="modalStatus" @filtr-add="filtration" @drop-modal="modalStatus = !modalStatus" @tag-add="addTag"/>
+    <ModalMobail v-if="modalStatus" @filtr-add="filtration" @drop-modal="modalStatus = !modalStatus" @add-categori="addCategori" @add-sours = "addSours"/>
     <header>
       <h1>HACKATHON <span>NEWS ///</span></h1>
       <input type="text" placeholder="Введите ключевые слова или фразы...">
@@ -84,19 +151,19 @@
               <form name="form_">
                 
                 <article>
-                    <InputCheckBox @change-tags="addTag" :tag="'NEWSAPI'" />
+                    <InputCheckBox @change-tags="addSours" :tag="'NEWSAPI'" />
                     <label>
                       NEWSAPI <br>МЕЖДУНАРОДНЫЕ НОВОСТИ
                     </label>
                 </article>
                 <article>
-                    <InputCheckBox @change-tags="addTag" :tag="'RIA'"/>
+                    <InputCheckBox @change-tags="addSours" :tag="'RIA'"/>
                     <label>
                       РИА НОВОСТИ <br>ОФИЦИАЛЬНАЯ ХРОНИКА
                     </label>
                 </article>
                 <article>
-                    <InputCheckBox @change-tags="addTag" :tag="'TASS'"/>
+                    <InputCheckBox @change-tags="addSours" :tag="'TASS'"/>
                     <label>
                       ТАСС <br> ГЛУБОКАЯ АНАЛИТИКА
                     </label>
@@ -107,15 +174,50 @@
               <h3>ДОПОЛНИТЕЛЬНЫЕ <br>ИСТОЧНИКИ</h3>
               <form name="form_">
                 <article>
-                    <InputCheckBox @change-tags="addTag" :tag="'TG'"/>
+                    <InputCheckBox @change-tags="addSours" :tag="'TG'"/>
                     <label>
                       ТЕЛЕГРАМ-КАНАЛЫ <br>ЖИВИЕ ОБСУЖДЕНИЯ
                     </label>
                 </article>
                 <article>
-                    <InputCheckBox @change-tags="addTag" :tag="'WEB'"/>
+                    <InputCheckBox @change-tags="addSours" :tag="'WEB'"/>
                     <label>
                      ВЕБ-САЙТЫ <br>ПЕРВОИСТОЧНИКИ
+                    </label>
+                </article>
+              </form>
+            </article>
+            <article class="filters-optional">
+              <h3>КАТЕГОРИИ <br>ПОИСКА</h3>
+              <form name="form_">
+                <article>
+                    <InputCheckBox @change-tags="addCategori" :tag="'Спорт'"/>
+                    <label>
+                      СПОРТ
+                    </label>
+                </article>
+                <article>
+                    <InputCheckBox @change-tags="addCategori" :tag="'Политика'"/>
+                    <label>
+                     ПОЛИТИКА
+                    </label>
+                </article>
+                <article>
+                    <InputCheckBox @change-tags="addCategori" :tag="'Безопасность'"/>
+                    <label>
+                     БЕЗОПАСНОСТЬ
+                    </label>
+                </article>
+                <article>
+                    <InputCheckBox @change-tags="addCategori" :tag="'Война'"/>
+                    <label>
+                     Боевые действия
+                    </label>
+                </article>
+                <article>
+                    <InputCheckBox @change-tags="addCategori" :tag="'Экономика'"/>
+                    <label>
+                     Экономика
                     </label>
                 </article>
               </form>
@@ -130,16 +232,13 @@
             <h2>свежие новости</h2>
             <article class="news-filters">
               <p>выбранные фильтры</p>
-              <section v-if="!statusAllPost">
+              <section>
                 <p v-for="i in appliedTags">{{ i }}</p>
               </section>
             </article>
           </section>
-          <section v-if="statusAllPost" class="news-list" >
+          <section class="news-list" >
             <NewsBlock v-for="i in posts"  :key="i.id" :obj="i"/>
-          </section>
-          <section v-else class="news-list" >
-            <NewsBlock v-for="i in activeFilterPost"  :key="i.id" :obj="i"/>
           </section>
         </article>
       </section>
@@ -371,7 +470,8 @@
               flex-direction: row;
               width: 50%;
               align-items: center;
-              justify-content: space-evenly;
+              justify-content: start;
+              flex-wrap: wrap;
               width: 100%;
               gap:30px;
 
@@ -389,7 +489,7 @@
         >.news-list {
           display: flex;
           flex-direction: column;
-          justify-content: start;
+          align-items: center;
           justify-content: center;
           width: 100%;
           box-sizing: border-box;

@@ -32,7 +32,7 @@
 
         >h1 {
             font-size: 14px;
-            width: 50%;
+            width: 70%;
         }
 
         >.item-info {
@@ -73,6 +73,30 @@
                 border-radius: 10px;
                 padding: 10px 15px;
             }
+        }
+    }
+
+    @media screen and (max-width:1350px) {
+        section {
+            width: 80% !important;
+
+            >h1 {
+                font-size: 12px !important;
+                width: 100% !important;
+            }
+
+        }
+    }
+
+    @media screen and (max-width:700px) {
+         section {
+            width: 100% !important;
+
+            >h1 {
+                font-size: 9px !important;
+                width: 100% !important;
+            }
+
         }
     }
 </style>

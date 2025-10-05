@@ -7,3 +7,4 @@ cron.schedule('0 * * * *', () =>{
   scheduled: true,
   timezone: "Europe/Moscow"
 })
+
