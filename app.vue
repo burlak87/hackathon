@@ -111,7 +111,7 @@
     } else {
       appliedTags.value = [...activeTags.value[0]]
       appliedTags.value.push(...activeTags.value[1])
-      //filterPost()
+      //filterPost(activeTags.value)
 
       activeTags.value = [[],[]]
     }
@@ -155,38 +155,39 @@
               <form name="form_">
                 
                 <article>
-                    <InputCheckBox @change-tags="addSours" :tag="'NEWSAPI'" />
+                    <InputCheckBox @change-tags="addSours" :tag="'cnn'" />
                     <label>
-                      NEWSAPI <br>МЕЖДУНАРОДНЫЕ НОВОСТИ
+                      CNN <br>МЕЖДУНАРОДНЫЕ НОВОСТИ
                     </label>
                 </article>
                 <article>
-                    <InputCheckBox @change-tags="addSours" :tag="'RIA'"/>
-                    <label>
-                      РИА НОВОСТИ <br>ОФИЦИАЛЬНАЯ ХРОНИКА
-                    </label>
-                </article>
-                <article>
-                    <InputCheckBox @change-tags="addSours" :tag="'TASS'"/>
+                    <InputCheckBox @change-tags="addSours" :tag="'tass-agency'"/>
                     <label>
                       ТАСС <br> ГЛУБОКАЯ АНАЛИТИКА
                     </label>
                 </article>
-              </form>
-            </article>
-            <article class="filters-optional">
-              <h3>ДОПОЛНИТЕЛЬНЫЕ <br>ИСТОЧНИКИ</h3>
-              <form name="form_">
                 <article>
-                    <InputCheckBox @change-tags="addSours" :tag="'TG'"/>
+                    <InputCheckBox @change-tags="addSours" :tag="'bbc-news'"/>
                     <label>
-                      ТЕЛЕГРАМ-КАНАЛЫ <br>ЖИВЫЕ ОБСУЖДЕНИЯ
+                      BSS <br>САМОЕ ГОРЯЧЕЕ
                     </label>
                 </article>
                 <article>
-                    <InputCheckBox @change-tags="addSours" :tag="'WEB'"/>
+                    <InputCheckBox @change-tags="addSours" :tag="'kommersant'"/>
                     <label>
-                     ВЕБ-САЙТЫ <br>ПЕРВОИСТОЧНИКИ
+                     KOMMERSANT <br>НАШ ЛУЧШИЙ
+                    </label>
+                </article>
+                <article>
+                    <InputCheckBox @change-tags="addSours" :tag="'rbc'"/>
+                    <label>
+                     RBC <br>ЛУЧШИЙ БИЗНЕСУ
+                    </label>
+                </article>
+                <article>
+                    <InputCheckBox @change-tags="addSours" :tag="'rian-ru'"/>
+                    <label>
+                     RIAN <br>ВСЁ И ОБО ВСЁМ
                     </label>
                 </article>
               </form>
@@ -222,6 +223,62 @@
                     <InputCheckBox @change-tags="addCategori" :tag="'Здоровье'"/>
                     <label>
                      ЗДОРОВЬЕ
+                    </label>
+                </article>
+                <article>
+                    <InputCheckBox @change-tags="addCategori" :tag="'Общество'"/>
+                    <label>
+                     ОБЩЕСТВО
+                    </label>
+                </article>
+                <article>
+                    <InputCheckBox @change-tags="addCategori" :tag="'Бизнес'"/>
+                    <label>
+                     БИЗНЕС
+                    </label>
+                </article>
+
+
+                <article>
+                    <InputCheckBox @change-tags="addCategori" :tag="'Развлечения'"/>
+                    <label>
+                      РАЗВЛЕЧЕНИЯ
+                    </label>
+                </article>
+                <article>
+                    <InputCheckBox @change-tags="addCategori" :tag="'Игры'"/>
+                    <label>
+                     ИГРЫ
+                    </label>
+                </article>
+                <article>
+                    <InputCheckBox @change-tags="addCategori" :tag="'Культура'"/>
+                    <label>
+                     КУЛЬТУРА
+                    </label>
+                </article>
+                <article>
+                    <InputCheckBox @change-tags="addCategori" :tag="'Общество'"/>
+                    <label>
+                     ОБЩЕСТВО
+                    </label>
+                </article>
+                <article>
+                    <InputCheckBox @change-tags="addCategori" :tag="'Международные отношения'"/>
+                    <label>
+                     МЕЖДУНАРОДНЫЕ ОТНОШЕНИЯ
+                    </label>
+                </article>
+                <article>
+                    <InputCheckBox @change-tags="addCategori" :tag="'Окружающая среда'"/>
+                    <label>
+                     ОКРУЖАЮЩАЯ СРЕДА
+                    </label>
+                </article>
+                <article>
+                    <InputCheckBox @change-tags="addCategori" :tag="'Экономика'"/>
+                    <label>
+                     ЭКОНОМИКА
                     </label>
                 </article>
               </form>
@@ -363,7 +420,7 @@
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        gap: 50px;
+        gap: 20px;
         width: fit-content;
         box-sizing: border-box;
         background-color: #6A50D8;
@@ -373,7 +430,7 @@
         border-radius: 25px;
 
         >h2 {
-          font-size: 16px;
+          font-size: 12px;
           color:white;
         }
 
@@ -382,7 +439,7 @@
           flex-direction: column;
           justify-content: start;
           align-items: start;
-          gap:50px;
+          gap:20px;
 
           >article {
             display: flex;
@@ -392,7 +449,7 @@
             gap:20px;
 
             >h3 {
-              font-size: 10px;
+              font-size: 8px;
               color:white;
               text-align: start;
               width: 100%;
@@ -413,7 +470,7 @@
                 gap:10px;
 
                 >label {
-                  font-size: 8px;
+                  font-size: 6px;
                   color:white;
                 }
               }
@@ -427,13 +484,13 @@
           >button {
             background-color: inherit;
             border: 1px solid white;
-            font-size: 8px;
+            font-size: 6px;
             padding: 10px 8px;
             color:white;
             border-radius:15px;
             text-align: start;
             >span {
-              font-size: 16px;
+              font-size: 13px;
               text-align: start;
             }
           }
@@ -679,6 +736,16 @@
     header {
       h1 {
         font-size: 12px !important;
+      }
+    }
+
+    .filters-save {
+      >button {
+        font-size: 8px !important;
+        text-align: center !important;
+        >span {
+          display: none !important;
+        }
       }
     }
   }

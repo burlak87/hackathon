@@ -13,82 +13,144 @@
         <article @click.stop class="modal">
             <h2>ФИЛЬТРЫ И <br>НАСТРОЙКИ</h2>
             <nav>
-                <article class="filters-main">
-                <h3>ВЫБЕРИТЕ <br>ИСТОЧНИКИ <br>НОВОСТЕЙ</h3>
-                <form name="form_">
-                    <article>
-                        <InputCheckBox @change-tags="(sours) => {$emit('addSours', sours)}" :tag="'NEWSAPI'" />
-                        <label>
-                        NEWSAPI <br>МЕЖДУНАРОДНЫЕ НОВОСТИ
-                        </label>
-                    </article>
-                    <article>
-                        <InputCheckBox @change-tags="(sours) => {$emit('addSours', sours)}" :tag="'RIA'"/>
-                        <label>
-                        РИА НОВОСТИ <br>ОФИЦИАЛЬНАЯ ХРОНИКА
-                        </label>
-                    </article>
-                    <article>
-                        <InputCheckBox @change-tags="(sours) => {$emit('addSours', sours)}" :tag="'TASS'"/>
-                        <label>
-                        ТАСС <br> ГЛУБОКАЯ АНАЛИТИКА
-                        </label>
-                    </article>
-                </form>
-                </article>
-                <article class="filters-optional">
-                    <h3>ДОПОЛНИТЕЛЬНЫЕ <br>ИСТОЧНИКИ</h3>
-                    <form name="form_">
-                        <article>
-                            <InputCheckBox @change-tags="(sours) => {$emit('addSours', sours)}" :tag="'TG'"/>
-                            <label>
-                            ТЕЛЕГРАМ-КАНАЛЫ <br>ЖИВИЕ ОБСУЖДЕНИЯ
-                            </label>
-                        </article>
-                        <article>
-                            <InputCheckBox @change-tags="(sours) => {$emit('addSours', sours)}" :tag="'WEB'"/>
-                            <label>
-                            ВЕБ-САЙТЫ <br>ПЕРВОИСТОЧНИКИ
-                            </label>
-                        </article>
-                    </form>
-                </article>
-                <article class="filters-optional">
-              <h3>КАТЕГОРИИ <br>ПОИСКА</h3>
+            <article class="filters-main">
+              <h3>ВЫБЕРИТЕ <br>ИСТОЧНИКИ <br>НОВОСТЕЙ</h3>
               <form name="form_">
+                
                 <article>
-                    <InputCheckBox @change-tags="(categori) => {$emit('addCategori', categori)}" :tag="'Спорт'"/>
+                    <InputCheckBox @change-tags="(sours) => {$emit('addSours', sours)}" :tag="'cnn'" />
                     <label>
-                      СПОРТ
+                      CNN <br>МЕЖДУНАРОДНЫЕ НОВОСТИ
                     </label>
                 </article>
                 <article>
-                    <InputCheckBox @change-tags="(categori) => {$emit('addCategori', categori)}" :tag="'Политика'"/>
+                    <InputCheckBox @change-tags="(sours) => {$emit('addSours', sours)}" :tag="'tass-agency'"/>
                     <label>
-                     ПОЛИТИКА
+                      ТАСС <br> ГЛУБОКАЯ АНАЛИТИКА
                     </label>
                 </article>
                 <article>
-                    <InputCheckBox @change-tags="(categori) => {$emit('addCategori', categori)}" :tag="'Безопасность'"/>
+                    <InputCheckBox @change-tags="(sours) => {$emit('addSours', sours)}" :tag="'bbc-news'"/>
                     <label>
-                     БЕЗОПАСНОСТЬ
+                      BSS <br>САМОЕ ГОРЯЧЕЕ
                     </label>
                 </article>
                 <article>
-                    <InputCheckBox @change-tags="(categori) => {$emit('addCategori', categori)}" :tag="'Война'"/>
+                    <InputCheckBox @change-tags="(sours) => {$emit('addSours', sours)}" :tag="'kommersant'"/>
                     <label>
-                     Боевые действия
+                     KOMMERSANT <br>НАШ ЛУЧШИЙ
                     </label>
                 </article>
                 <article>
-                    <InputCheckBox @change-tags="(categori) => {$emit('addCategori', categori)}" :tag="'Экономика'"/>
+                    <InputCheckBox @change-tags="(sours) => {$emit('addSours', sours)}" :tag="'rbc'"/>
                     <label>
-                     Экономика
+                     RBC <br>ЛУЧШИЙ БИЗНЕСУ
+                    </label>
+                </article>
+                <article>
+                    <InputCheckBox @change-tags="(sours) => {$emit('addSours', sours)}" :tag="'rian-ru'"/>
+                    <label>
+                     RIAN <br>ВСЁ И ОБО ВСЁМ
                     </label>
                 </article>
               </form>
             </article>
-            </nav>
+            <article class="filters-optional">
+              <h3>КАТЕГОРИИ <br>ПОИСКА</h3>
+              <form class="form-categori" name="form_">
+                <section>
+                    <article>
+                        <InputCheckBox @change-tags="(categori) => {$emit('addCategori', categori)}" :tag="'Спорт'"/>
+                        <label>
+                        СПОРТ
+                        </label>
+                    </article>
+                    <article>
+                        <InputCheckBox @change-tags="(categori) => {$emit('addCategori', categori)}" :tag="'Политика'"/>
+                        <label>
+                        ПОЛИТИКА
+                        </label>
+                    </article>
+                    <article>
+                        <InputCheckBox @change-tags="(categori) => {$emit('addCategori', categori)}" :tag="'Технологии'"/>
+                        <label>
+                        ТЕХНОЛОГИИ
+                        </label>
+                    </article>
+                    <article>
+                        <InputCheckBox @change-tags="(categori) => {$emit('addCategori', categori)}" :tag="'Наука'"/>
+                        <label>
+                        НАУКА
+                        </label>
+                    </article>
+                    <article>
+                        <InputCheckBox @change-tags="(categori) => {$emit('addCategori', categori)}" :tag="'Здоровье'"/>
+                        <label>
+                        ЗДОРОВЬЕ
+                        </label>
+                    </article>
+                    <article>
+                        <InputCheckBox @change-tags="(categori) => {$emit('addCategori', categori)}" :tag="'Общество'"/>
+                        <label>
+                        ОБЩЕСТВО
+                        </label>
+                    </article>
+                    <article>
+                        <InputCheckBox @change-tags="(categori) => {$emit('addCategori', categori)}" :tag="'Бизнес'"/>
+                        <label>
+                        БИЗНЕС
+                        </label>
+                    </article>
+                </section>
+                <section>
+                    <article>
+                        <InputCheckBox @change-tags="(categori) => {$emit('addCategori', categori)}" :tag="'Развлечения'"/>
+                        <label>
+                        РАЗВЛЕЧЕНИЯ
+                        </label>
+                    </article>
+                    <article>
+                        <InputCheckBox @change-tags="(categori) => {$emit('addCategori', categori)}" :tag="'Игры'"/>
+                        <label>
+                        ИГРЫ
+                        </label>
+                    </article>
+                    <article>
+                        <InputCheckBox @change-tags="(categori) => {$emit('addCategori', categori)}" :tag="'Культура'"/>
+                        <label>
+                        КУЛЬТУРА
+                        </label>
+                    </article>
+                    <article>
+                        <InputCheckBox @change-tags="(categori) => {$emit('addCategori', categori)}" :tag="'Общество'"/>
+                        <label>
+                        ОБЩЕСТВО
+                        </label>
+                    </article>
+                    <article>
+                        <InputCheckBox @change-tags="(categori) => {$emit('addCategori', categori)}" :tag="'Международные отношения'"/>
+                        <label>
+                        ОТНОШЕНИЯ
+                        </label>
+                    </article>
+                    <article>
+                        <InputCheckBox @change-tags="(categori) => {$emit('addCategori', categori)}" :tag="'Окружающая среда'"/>
+                        <label>
+                        ОКРУЖ. СРЕДА
+                        </label>
+                    </article>
+                    <article>
+                        <InputCheckBox @change-tags="(categori) => {$emit('addCategori', categori)}" :tag="'Экономика'"/>
+                        <label>
+                        ЭКОНОМИКА
+                        </label>
+                    </article>
+                </section>
+                
+              </form>
+              
+            </article>
+          </nav>
             <section class="filters-save">
                 <button @click.prevent="$emit('filtrAdd')">Сохранить и продолжить <span>→</span></button>
             </section>
@@ -115,7 +177,7 @@
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        gap: 30px;
+        gap: 20px;
         width: fit-content;
         box-sizing: border-box;
         background-color: #6A50D8;
@@ -125,7 +187,7 @@
         border-radius: 25px;
 
         >h2 {
-          font-size: 16px;
+          font-size: 12px;
           color:white;
         }
 
@@ -134,17 +196,17 @@
           flex-direction: column;
           justify-content: start;
           align-items: start;
-          gap:30px;
+          gap:10px;
 
           >article {
             display: flex;
             flex-direction: column;
             justify-content: start;
             align-items: start;
-            gap:15px;
+            gap:10px;
 
             >h3 {
-              font-size: 10px;
+              font-size: 6px;
               color:white;
               text-align: start;
               width: 100%;
@@ -158,18 +220,52 @@
               gap:10px;
 
               >article {
-                display:flex;
-                flex-direction: row;
-                align-items: center;
-                justify-content: start;
-                gap:10px;
+                    width: 100%;
+                    display:flex;
+                    flex-direction: row;
+                    align-items: center;
+                    justify-content: start;
+                    gap:10px;
 
-                >label {
-                  font-size: 8px;
-                  color:white;
+                    >label {
+                        font-size: 6px;
+                        color:white;
+                    }
                 }
-              }
+              
             }
+
+
+            >.form-categori {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                gap:10px;
+                >section {
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: start;
+                    align-items: start;
+                    gap:10px;
+                    width: 50%;
+
+                    >article {
+                        display:flex;
+                        flex-direction: row;
+                        align-items: center;
+                        justify-content: start;
+                        gap:10px;
+
+                        >label {
+                            font-size: 5px;
+                            color:white;
+                        }
+                    }
+                }
+            }
+
+
           }
         }
 
@@ -209,7 +305,7 @@
             border-radius: 25px;
 
             >h2 {
-            font-size: 13px;
+            font-size: 10px;
             color:white;
             }
 
@@ -218,7 +314,7 @@
             flex-direction: column;
             justify-content: start;
             align-items: start;
-            gap:30px;
+            gap:10px;
 
             >article {
                 display: flex;
@@ -228,32 +324,13 @@
                 gap:10px;
 
                 >h3 {
-                font-size: 8px;
+                font-size: 6px;
                 color:white;
                 text-align: start;
                 width: 100%;
                 }
 
-                >form {
-                display: flex;
-                flex-direction: column;
-                justify-content: start;
-                align-items: start;
-                gap:10px;
-
-                >article {
-                    display:flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: start;
-                    gap:10px;
-
-                    >label {
-                    font-size: 6px;
-                    color:white;
-                    }
-                }
-                }
+    
             }
             }
 
@@ -261,16 +338,9 @@
             width: 100%;
 
             >button {
-                background-color: inherit;
-                border: 1px solid white;
-                font-size: 8px;
-                padding: 10px 8px;
-                color:white;
-                border-radius:15px;
-                text-align: start;
+                font-size: 6px !important;
                 >span {
-                font-size: 16px;
-                text-align: start;
+                    font-size: 10px !important;
                 }
             }
             }
