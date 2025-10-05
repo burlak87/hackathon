@@ -84,6 +84,7 @@
     } else {
       activeTags.value[0].splice(activeTags.value.indexOf(el), 1)
     }
+    console.log(activeTags.value)
   }
 
   function addCategori(el) {
@@ -92,24 +93,27 @@
     } else {
       activeTags.value[1].splice(activeTags.value.indexOf(el), 1)
     }
-
+    console.log(activeTags.value)
     
   }
 
   function filtration() {
-
+    console.log(activeTags.value)
     if(modalStatus.value) {
       modalStatus.value = false
     }
 
-    if(!activeTags.value[0].length || !activeTags.value[1].length) {
+    if(!activeTags.value[0].length && !activeTags.value[1].length) {
       //allPosts()
       appliedTags.value = []
+      console.log(11111)
       return 0;
     } else {
       appliedTags.value = [...activeTags.value[0]]
       appliedTags.value.push(...activeTags.value[1])
       //filterPost()
+
+      activeTags.value = [[],[]]
     }
 
   }
@@ -203,21 +207,21 @@
                     </label>
                 </article>
                 <article>
-                    <InputCheckBox @change-tags="addCategori" :tag="'Безопасность'"/>
+                    <InputCheckBox @change-tags="addCategori" :tag="'Технологии'"/>
                     <label>
-                     БЕЗОПАСНОСТЬ
+                     ТЕХНОЛОГИИ
                     </label>
                 </article>
                 <article>
-                    <InputCheckBox @change-tags="addCategori" :tag="'Война'"/>
+                    <InputCheckBox @change-tags="addCategori" :tag="'Наука'"/>
                     <label>
-                     Боевые действия
+                     НАУКА
                     </label>
                 </article>
                 <article>
-                    <InputCheckBox @change-tags="addCategori" :tag="'Экономика'"/>
+                    <InputCheckBox @change-tags="addCategori" :tag="'Здоровье'"/>
                     <label>
-                     Экономика
+                     ЗДОРОВЬЕ
                     </label>
                 </article>
               </form>
