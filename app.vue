@@ -176,7 +176,7 @@
                 <article>
                     <InputCheckBox @change-tags="addSours" :tag="'TG'"/>
                     <label>
-                      ТЕЛЕГРАМ-КАНАЛЫ <br>ЖИВИЕ ОБСУЖДЕНИЯ
+                      ТЕЛЕГРАМ-КАНАЛЫ <br>ЖИВЫЕ ОБСУЖДЕНИЯ
                     </label>
                 </article>
                 <article>
