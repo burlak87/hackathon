@@ -1,7 +1,7 @@
 <script setup>
     let dataTags = defineProps(["tag"])
 
-    
+    console.log(dataTags.tag)
 </script>
 
 <template>

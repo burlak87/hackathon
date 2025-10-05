@@ -25,11 +25,12 @@
     } else {
       activeTags.value.splice(activeTags.value.indexOf(el), 1)
     }
-    
+    console.log(activeTags.value)
   }
 
   function filtration() {
-    
+    modalStatus.value = false
+    console.log(activeTags.value)
     if(!activeTags.value.length) {
       statusAllPost.value = true
       appliedTags.value = []
@@ -50,13 +51,18 @@
   }
 
   function openModalFilters() {
-
+    if(modalStatus.value) {
+      modalStatus.value = false
+    } else {
+      modalStatus.value = true
+    }
   }
 </script>
 
 
 <template>
-    <ModalMobail v-if="modalStatus"/>
+    
+    <ModalMobail v-if="modalStatus" @filtr-add="filtration" @drop-modal="modalStatus = !modalStatus" @tag-add="addTag"/>
     <header>
       <h1>HACKATHON <span>NEWS ///</span></h1>
       <input type="text" placeholder="Введите ключевые слова или фразы...">
@@ -364,8 +370,9 @@
               display: flex;
               flex-direction: row;
               width: 50%;
-              align-items: start;
-              justify-content: start;
+              align-items: center;
+              justify-content: space-evenly;
+              width: 100%;
               gap:30px;
 
               >p {
@@ -582,6 +589,16 @@
       padding: 15px 40px;
     }
 
+     .news-filters {
+            >section {
+              flex-direction: column !important;
+              align-items: center !important;
+              justify-content: center !important;
+              gap:10px !important;
+
+            }
+          }
+
     .filter-button {
       display: flex !important;
       justify-content: center !important;
@@ -620,7 +637,7 @@
 
     .content {
       justify-content: center !important;
-      width: 100% !important;
+
     }
 
     .news-title {
