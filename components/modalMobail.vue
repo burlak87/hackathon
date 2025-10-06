@@ -18,18 +18,18 @@
               <form name="form_">
                 
                 <article>
-                    <InputCheckBox @change-tags="(sours) => {$emit('addSours', sours)}" :tag="'cnn'" />
+                    <InputCheckBox @change-tags="(sours) => {$emit('addSours', sours)}" :tag="'NewsAPI'" />
                     <label>
                       CNN <br>МЕЖДУНАРОДНЫЕ НОВОСТИ
                     </label>
                 </article>
                 <article>
-                    <InputCheckBox @change-tags="(sours) => {$emit('addSours', sours)}" :tag="'tass-agency'"/>
+                    <InputCheckBox @change-tags="(sours) => {$emit('addSours', sours)}" :tag="'Telegram'"/>
                     <label>
-                      ТАСС <br> ГЛУБОКАЯ АНАЛИТИКА
+                      TELEGRAM <br> ГЛУБОКАЯ АНАЛИТИКА
                     </label>
                 </article>
-                <article>
+                <!--<article>
                     <InputCheckBox @change-tags="(sours) => {$emit('addSours', sours)}" :tag="'bbc-news'"/>
                     <label>
                       BSS <br>САМОЕ ГОРЯЧЕЕ
@@ -52,7 +52,7 @@
                     <label>
                      RIAN <br>ВСЁ И ОБО ВСЁМ
                     </label>
-                </article>
+                </article>-->
               </form>
             </article>
             <article class="filters-optional">
@@ -125,18 +125,6 @@
                         <InputCheckBox @change-tags="(categori) => {$emit('addCategori', categori)}" :tag="'Общество'"/>
                         <label>
                         ОБЩЕСТВО
-                        </label>
-                    </article>
-                    <article>
-                        <InputCheckBox @change-tags="(categori) => {$emit('addCategori', categori)}" :tag="'Международные отношения'"/>
-                        <label>
-                        ОТНОШЕНИЯ
-                        </label>
-                    </article>
-                    <article>
-                        <InputCheckBox @change-tags="(categori) => {$emit('addCategori', categori)}" :tag="'Окружающая среда'"/>
-                        <label>
-                        ОКРУЖ. СРЕДА
                         </label>
                     </article>
                     <article>

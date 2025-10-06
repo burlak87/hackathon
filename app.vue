@@ -5,70 +5,36 @@
   let  modalStatus = ref(false)
 
   
-  const posts = [
-    {
-    id: new Date(),
-    name: "Искусственный интеллект научился предсказывать погоду с 95% точностью",
-    isto: "Telegramm",
-    time: 2,
-    description: "Новая нейросеть от DeepMind прогнозирует погодные условия на 10 дней вперед. Алгоритм анализирует спутниковые данные в реальном времени и превосходит традиционные методы.",
-    link: "#"
-  },
-   {
-    id: new Date(),
-    name: "Искусственный интеллект научился предсказывать погоду с 95% точностью",
-    isto: "Telegramm",
-    time: 2,
-    description: "Новая нейросеть от DeepMind прогнозирует погодные условия на 10 дней вперед. Алгоритм анализирует спутниковые данные в реальном времени и превосходит традиционные методы.",
-    link: "#"
-  },
-   {
-    id: new Date(),
-    name: "Искусственный интеллект научился предсказывать погоду с 95% точностью",
-    isto: "Telegramm",
-    time: 2,
-    description: "Новая нейросеть от DeepMind прогнозирует погодные условия на 10 дней вперед. Алгоритм анализирует спутниковые данные в реальном времени и превосходит традиционные методы.",
-    link: "#"
-  },
-   {
-    id: new Date(),
-    name: "Искусственный интеллект научился предсказывать погоду с 95% точностью",
-    isto: "Telegramm",
-    time: 2,
-    description: "Новая нейросеть от DeepMind прогнозирует погодные условия на 10 дней вперед. Алгоритм анализирует спутниковые данные в реальном времени и превосходит традиционные методы.",
-    link: "#"
-  },
-   {
-    id: new Date(),
-    name: "Искусственный интеллект научился предсказывать погоду с 95% точностью",
-    isto: "Telegramm",
-    time: 2,
-    description: "Новая нейросеть от DeepMind прогнозирует погодные условия на 10 дней вперед. Алгоритм анализирует спутниковые данные в реальном времени и превосходит традиционные методы.",
-    link: "#"
-  },
-   {
-    id: new Date(),
-    name: "Искусственный интеллект научился предсказывать погоду с 95% точностью",
-    isto: "Telegramm",
-    time: 2,
-    description: "Новая нейросеть от DeepMind прогнозирует погодные условия на 10 дней вперед. Алгоритм анализирует спутниковые данные в реальном времени и превосходит традиционные методы.",
-    link: "#"
-  },
-]
+  const posts = ref([])
 
   async function allPosts() {
-    let promis = await fetch("http://localhost:5000/posts")
-    //posts.value = JSON.parse(promis.json())
-  }
-
-  async function filterPost(tags) {
-    let promis = await fetch("http://localhost:5000/posts", {
+    let promis = await fetch(" http://localhost:3001/api-v1/news", {
       method: "GET",
       headers: {
           'Content-Type': 'application/json;charset=utf-8'
-      },
-      body: JSON.parse(tags)
+      }
     })
+
+    posts.value = JSON.parse(promis.json())
+  }
+
+  function urlFiltration(sours, categori, urlOld) {
+    let filters = []
+    filters.push(sours.length > 0 ? "?source="+sours.join(",") : "")
+    filters.push(categori.length > 0 ? "category="+categori.join(",") : "")
+    return sours.length > 0 && categori.length > 0 ? urlOld+filters.join("&") : sours.length > 0 && categori.length == 0 ? urlOld+filters.join("") : sours.length == 0 && categori.length > 0 ? urlOld+filters.join("?") : ""
+  }
+
+  async function filterPost(tags) {
+    let url =  "http://localhost:3001/api-v1/news"
+    let urlFilters = urlFiltration(tags[0], tags[1], url)
+    console.log(urlFilters)
+    /*let promis = await fetch(urlFilters, {
+      method: "GET",
+      headers: {
+          'Content-Type': 'application/json;charset=utf-8'
+      }
+    })*/
 
     //posts.value = promis.json()
   }
@@ -80,9 +46,11 @@
 
   function addSours(el) {
     if(activeTags.value[0].indexOf(el) == -1) {
+      console.log(el)
       activeTags.value[0].push(el)
     } else {
       activeTags.value[0].splice(activeTags.value.indexOf(el), 1)
+      console.log(false)
     }
     console.log(activeTags.value)
   }
@@ -111,9 +79,9 @@
     } else {
       appliedTags.value = [...activeTags.value[0]]
       appliedTags.value.push(...activeTags.value[1])
-      //filterPost(activeTags.value)
+      filterPost(activeTags.value)
 
-      activeTags.value = [[],[]]
+      
     }
 
   }
@@ -155,18 +123,18 @@
               <form name="form_">
                 
                 <article>
-                    <InputCheckBox @change-tags="addSours" :tag="'cnn'" />
+                    <InputCheckBox @change-tags="addSours" :tag="'NewsAPI'" />
                     <label>
                       CNN <br>МЕЖДУНАРОДНЫЕ НОВОСТИ
                     </label>
                 </article>
                 <article>
-                    <InputCheckBox @change-tags="addSours" :tag="'tass-agency'"/>
+                    <InputCheckBox @change-tags="addSours" :tag="'Telegram'"/>
                     <label>
-                      ТАСС <br> ГЛУБОКАЯ АНАЛИТИКА
+                      TELEGRAM <br> САМОЕ ГОРЯЧЕЕ
                     </label>
                 </article>
-                <article>
+                <!--<article>
                     <InputCheckBox @change-tags="addSours" :tag="'bbc-news'"/>
                     <label>
                       BSS <br>САМОЕ ГОРЯЧЕЕ
@@ -189,7 +157,7 @@
                     <label>
                      RIAN <br>ВСЁ И ОБО ВСЁМ
                     </label>
-                </article>
+                </article>-->
               </form>
             </article>
             <article class="filters-optional">
@@ -264,18 +232,6 @@
                     </label>
                 </article>
                 <article>
-                    <InputCheckBox @change-tags="addCategori" :tag="'Международные отношения'"/>
-                    <label>
-                     МЕЖДУНАРОДНЫЕ ОТНОШЕНИЯ
-                    </label>
-                </article>
-                <article>
-                    <InputCheckBox @change-tags="addCategori" :tag="'Окружающая среда'"/>
-                    <label>
-                     ОКРУЖАЮЩАЯ СРЕДА
-                    </label>
-                </article>
-                <article>
                     <InputCheckBox @change-tags="addCategori" :tag="'Экономика'"/>
                     <label>
                      ЭКОНОМИКА
@@ -305,22 +261,27 @@
       </section>
     </main>
     <footer>
-      <section class="footer-info">
-        <article>
-          <h1>HACKATHON <span>NEWS</span></h1>
-          <p>Умный агрегатор новостей с <span>AI</span>-анализом</p>
-        </article>
-        <article class="footer-info__article-copy">
-          <p><span class="copy">©</span> 2025 Команда <span>BlueScreenDead</span></p>
-        </article>
-      </section>
-      <section class="footer-contact">
-        <h2>НАШИ КОНТАКТЫ</h2>
-          <section>
-            <p><img src="/foto/telegram.png" alt="Telegram"> <span>TELEGRAM:</span> @m0rt1mmin3nte</p>
-            <p><img src="/foto/mail.png" alt="EMail"> <span>MAIL:</span> email@mail.ru</p>
-          </section>
-      </section>
+      <article class="footer-main">
+        <section class="footer-info">
+          <article>
+            <h1>HACKATHON <span>NEWS</span></h1>
+            <p>Умный агрегатор новостей с <span>AI</span>-анализом</p>
+          </article>
+          <article class="footer-info__article-copy">
+            <p><span class="copy">©</span> 2025 Команда <span>BlueScreenDead</span></p>
+          </article>
+        </section>
+        <section class="footer-contact">
+          <h2>НАШИ КОНТАКТЫ</h2>
+            <section>
+              <p><img src="/foto/telegram.png" alt="Telegram"> <span>TELEGRAM:</span> @m0rt1mmin3nte</p>
+              <p><img src="/foto/mail.png" alt="EMail"> <span>MAIL:</span> burlakovfedor87@gmail.com</p>
+            </section>
+        </section>
+      </article>
+      <article class="footer-warning">
+        <p>Мы не уверены, что данный хостинг-провайдер надёжен. Если возникнут проблемы пишите нам!</p>
+      </article>
     </footer>
 </template>
 
@@ -569,115 +530,137 @@
     background-color: #252525;
     padding: 50px 80px;
     display: flex;
-    flex-direction: row;
-    align-items: start;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
     gap:100px;
 
-    >.footer-info {
+    >.footer-main {
+      width: 100%;
       display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap:50px;
-      width: 50%;
+      flex-direction: row;
+      align-items: start;
+      justify-content: space-between;
 
-      >article {
+      >.footer-info {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap:50px;
+        width: 50%;
+
+        >article {
+          display: flex;
+          flex-direction: column;
+          justify-content: start;
+          align-items: start;
+          text-align: start;
+          width: 100%;
+          gap:20px;
+
+          >h1 {
+            font-size: 12px;
+            color:white;
+            >span {
+              color:#6A50D8
+            }
+          }
+
+          >p {
+            font-size: 9px;
+            color:white;
+
+            >span {
+              color:#6A50D8;
+            }
+          }
+
+          >section {
+            display: flex;
+            flex-direction: column;
+            justify-content: start;
+            align-items: start;
+            gap:20px;
+          }
+        }
+
+        >.footer-info__article-copy {
+          >p {
+            font-size: 9px;
+            color:white;
+            
+
+            >span:first-child {
+              color:#6A50D8;
+              font-size: 20px;
+            }
+
+            >span {
+              color:#6A50D8;
+            }
+          }
+        }
+
+      }
+
+      .footer-contact {
         display: flex;
         flex-direction: column;
         justify-content: start;
         align-items: start;
-        text-align: start;
-        width: 100%;
-        gap:20px;
+        gap:40px;
+        width: 50%;
 
-        >h1 {
+        >h2 {
           font-size: 12px;
           color:white;
-          >span {
-            color:#6A50D8
-          }
         }
 
-        >p {
-          font-size: 9px;
-          color:white;
 
-          >span {
-            color:#6A50D8;
-          }
-        }
 
         >section {
           display: flex;
           flex-direction: column;
           justify-content: start;
           align-items: start;
-          gap:20px;
-        }
-      }
+          gap:15px;
 
-      >.footer-info__article-copy {
-         >p {
-          font-size: 9px;
-          color:white;
-          
+          >p {
+            font-size: 9px;
+            color:white;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            gap:10px;
 
-          >span:first-child {
-            color:#6A50D8;
-            font-size: 20px;
-          }
+            >span {
+              color:#6A50D8
+            }
 
-          >span {
-            color:#6A50D8;
-          }
-        }
-      }
-
-    }
-
-    .footer-contact {
-      display: flex;
-      flex-direction: column;
-      justify-content: start;
-      align-items: start;
-      gap:40px;
-      width: 50%;
-
-      >h2 {
-        font-size: 12px;
-        color:white;
-      }
-
-
-
-      >section {
-        display: flex;
-        flex-direction: column;
-        justify-content: start;
-        align-items: start;
-        gap:15px;
-
-        >p {
-          font-size: 9px;
-          color:white;
-          display: flex;
-          flex-direction: row;
-          align-items: center;
-          justify-content: center;
-          gap:10px;
-
-          >span {
-            color:#6A50D8
-          }
-
-          >img {
-            width: 20px;
-            height: 20px;
+            >img {
+              width: 20px;
+              height: 20px;
+            }
           }
         }
       }
     }
+
+    >.footer-warning {
+      width: 100%;
+      box-sizing: border-box;
+
+      >p {
+        font-size: 10px;
+        text-align: center;
+        width: 100%;
+        color:#6A50D8;
+      }
+    }
+
+    
 
   }
 
@@ -851,28 +834,41 @@
       }
     }
 
+    .footer-main {
+      flex-direction: column !important;
+      justify-content: center !important;
+      align-items: center !important;
+      gap:50px !important;
+    }
+
     footer {
-    padding: 50px 40px !important;
-    gap:40px !important;
+      padding: 50px 40px !important;
+      gap:40px !important;
 
-    >.footer-info {
-      gap:30px !important;
-      >article {
-        >h1 {
-          font-size: 8px !important;
-        }
-        >p {
-          font-size: 5px !important;
-        }
-      }
+      .footer-info {
+        width: 100% !important;
+        gap:30px !important;
+          >article {
+            justify-content: center !important;
+            align-items: center !important;
+            width: 100% !important;
+            >h1 {
+              font-size: 10px !important;
+            }
+            >p {
+              font-size: 6px !important;
+              text-align: center ;
+            }
+      } 
 
-      >.footer-info__article-copy {
+      .footer-info__article-copy {
          >p {
-          font-size: 5px !important;
+            font-size: 6px !important;
+            
 
-          >.copy {
-            font-size: 15px !important;
-          }
+            >.copy {
+              font-size: 15px !important;
+            }
           }
         
         
@@ -883,11 +879,16 @@
     .footer-contact {
 
       >h2 {
-        font-size: 8px !important;
+        font-size: 10px !important;
+        text-align: center !important;
+        width: 100% !important;
       }
       >section {
+        justify-content: center !important;
+        align-items: center !important;
+        width: 100% !important;
         >p {
-          font-size: 6px;
+          font-size: 6px !important;
         }
       }
     }
@@ -896,7 +897,7 @@
 
 
   @media screen and (max-width:600px) {
-    footer {
+    .footer-main {
       flex-direction: column !important;
       align-items: center !important;
       justify-content: center !important;
@@ -904,11 +905,20 @@
     }
 
     .footer-contact {
+      justify-content: center !important;
+      align-items: center !important;
       width: 100% !important;
+
+      >section {
+        justify-content: center !important;
+        align-items: center !important;
+      }
     }
 
     .footer-info {
+      
       width: 100% !important;
+
     }
 
     .title {
