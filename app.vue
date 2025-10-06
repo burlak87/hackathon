@@ -29,18 +29,18 @@
     let url =  "http://localhost:3001/api-v1/news"
     let urlFilters = urlFiltration(tags[0], tags[1], url)
     console.log(urlFilters)
-    /*let promis = await fetch(urlFilters, {
+    let promis = await fetch(urlFilters, {
       method: "GET",
       headers: {
           'Content-Type': 'application/json;charset=utf-8'
       }
-    })*/
+    })
 
-    //posts.value = promis.json()
+    posts.value = promis.json()
   }
 
   onMounted(() => {
-    //allPosts()
+    allPosts()
   })
   
 
@@ -49,24 +49,25 @@
       console.log(el)
       activeTags.value[0].push(el)
     } else {
-      activeTags.value[0].splice(activeTags.value.indexOf(el), 1)
+      console.log(el)
+      activeTags.value[0].splice(activeTags.value[0].indexOf(el), 1)
       console.log(false)
+      console.log(activeTags.value)
     }
-    console.log(activeTags.value)
+    
   }
 
   function addCategori(el) {
     if(activeTags.value[1].indexOf(el) == -1) {
       activeTags.value[1].push(el)
     } else {
-      activeTags.value[1].splice(activeTags.value.indexOf(el), 1)
+      activeTags.value[1].splice(activeTags.value[1].indexOf(el), 1)
     }
     console.log(activeTags.value)
     
   }
 
   function filtration() {
-    console.log(activeTags.value)
     if(modalStatus.value) {
       modalStatus.value = false
     }
@@ -83,7 +84,7 @@
 
       
     }
-
+    console.log(activeTags.value)
   }
 
 
