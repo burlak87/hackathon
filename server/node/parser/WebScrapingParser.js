@@ -1,22 +1,43 @@
 import axios from "axios";
 import NewsSource from "../interface/NewsSource.js";
-import cheerio from "cheerio";
-import { searchLast } from "../helpers/searchLast.js"
+import { load } from "cheerio";
+import { getLastNewsDateBySource } from '../helpers/newsHelpers.js'
 
 class WebScrapingParser extends NewsSource {
 	constructor(url, selectors) {
-		super('Web Scraping')
+		super('WebScraping')
 		this.url = url
 		this.selectors = selectors
 	}
 
 	async fetchNews(options = { limit: 10 }) {
 		let lastDate = null
-		const source = this.sourceName
-		lastDate = await searchLast(lastDate, source)
 		try {
-			const response = await axios.get(this.url, { timeout: 10000 })
-			const $ = cheerio.load(response.data)
+			lastDate = await getLastNewsDateBySource(this.source)
+			if (!lastDate) {
+				lastDate = new Date(Date.now() - 24 * 60 * 60 * 1000)
+			}
+		} catch (error) {
+			lastDate = new Date(Date.now() - 24 * 60 * 60 * 1000)
+		}
+		try {
+			console.log(
+				`[DEBUG] Scraping ${this.url} with selectors:`,
+				this.selectors
+			)
+      const response = await axios.get(this.url, {
+				timeout: 15000,
+				headers: {
+					'User-Agent':
+					'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+				},
+			})
+			const $ = load(response.data)
+			
+			const titleElements = $(this.selectors.title)
+			console.log(
+					`[DEBUG] Found ${titleElements.length} title elements with selector "${this.selectors.title}"`
+				)
 			const news = []
 			$(this.selectors.title)
 				.slice(0, options.limit)
@@ -58,11 +79,16 @@ class WebScrapingParser extends NewsSource {
 							summary_text: summary,
 							url: link ? new URL(link, this.url).href : this.url,
 							date: parsedDate,
-							source,
+							source: this.source,
 							categories: [],
 						})
 					}
 				})
+			console.log(
+				`[DEBUG] Total parsed items: ${titleElements.length}, new after ${
+				lastDate.toISOString().split('T')[0]
+				}: ${news.length}`
+			)
 			console.log(
 				`Найдено ${news.length} новых новостей после ${
 					lastDate.toISOString().split('T')[0]

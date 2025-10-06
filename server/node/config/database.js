@@ -5,7 +5,7 @@ let pool;
 console.log('=== ОТЛАДКА ENV ===');
 console.log('DB_MOCK value:', process.env.DB_MOCK, '(type:', typeof process.env.DB_MOCK, ')');
 console.log('DB_HOST:', process.env.DB_HOST);
-console.log('DB_PASSWORD exists?', !!process.env.DB_PASSWORD);  // Без показа значения
+console.log('DB_PASSWORD exists?', !!process.env.DB_PASSWORD); 
 console.log('====================');
 const useMock = process.env.DB_MOCK?.toLowerCase() === 'true' || process.env.DB_MOCK === '1';
 if (useMock) {
@@ -21,11 +21,11 @@ if (useMock) {
 				queryText.includes('information_schema.tables') &&
 				queryText.includes('news')
 			) {
-				return { rows: [{ table_exists: true }] } // "Таблица существует" — миграция пропустится
+				return { rows: [{ table_exists: true }] }
 			}
 
 			if (queryText.includes('SELECT COUNT(*)') && queryText.includes('news')) {
-				return { rows: [{ count: 0 }] } // Или >0 для заполненной
+				return { rows: [{ count: 0 }] } 
 			}
 
 			if (queryText.includes('CREATE TABLE news')) {
@@ -76,14 +76,14 @@ if (useMock) {
 		},
 	}
 } else {
-	console.log('🔌 Используется реальное подключение к PostgreSQL')
+	console.log('Используется реальное подключение к PostgreSQL')
 
 	pool = new Pool({
 		host: process.env.DB_HOST || 'localhost',
 		port: process.env.DB_PORT || 5432,
 		database: process.env.DB_NAME || 'myapp_db',
 		user: process.env.DB_USER || 'postgres',
-		password: process.env.DB_PASSWORD || '', // Строка!
+		password: process.env.DB_PASSWORD || '',
 		ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
 		max: 20,
 		idleTimeoutMillis: 30000,

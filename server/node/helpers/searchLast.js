@@ -1,4 +1,4 @@
-import { getLastNewsDateBySource } from "./newsHelpers"
+import { getLastNewsDateBySource } from "./newsHelpers.js"
 
 async function searchLast(lastDate, source) {
 	try {

@@ -46,8 +46,7 @@ async function createTable() {
       url TEXT,
       date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
       source TEXT NOT NULL,
-      category TEXT,
-      categories JSONB DEFAULT '[]'::JSONB
+      categories JSONB DEFAULT '[]'::JSONB,
       embeddings JSONB DEFAULT '[]'::JSONB
     )
   `

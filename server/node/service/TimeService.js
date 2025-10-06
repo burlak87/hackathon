@@ -1,52 +1,127 @@
 import FactoryService from './FactoryService.js'
 import { cosineSimilarity, initTfIdf, computeTfIdfSimilarity, jaroWinklerSimilarity, getEmbeddingsWithFallback } from '../helpers/embeddingsHelper.js'
 import { getNewsText, keywordTopCategories, summarizeText } from '../helpers/summarizationHelper.js'
-import { NEWS_CONFIG } from './helpers/config.js'
+import { NEWS_CONFIG } from '../helpers/config.js'
 import pLimit from 'p-limit'
 import { insertNews } from '../helpers/newsHelpers.js'
 
-const categories = ['Политика', 'Экономика', 'Спорт', 'Технологии', 'Культура'];
+import { pipeline, env } from '@xenova/transformers';
+
+env.allowLocalModels = false;
+env.allowRemoteModels = true;
+
+const categories = [
+	'Политика',
+	'Экономика',
+	'Спорт',
+	'Технологии',
+	'Культура',
+	'Общество',
+	'Бизнес',
+	'Наука',
+	'Здоровье',
+	'Развлечения',
+	'игры',
+]
 
 class TimeService {
 	async factoryNews() {
 		const config = {
-			newsapi: { apiKey: 'your-news-key' },
-			telegram: { botToken: 'your-bot-token', channelId: '@prime1' },
-			scraping: {
-				url: 'https://www.bcs-express.ru/news',
+			'newsapi-cnn': { apiKey: 'http://rss.cnn.com/rss/edition.rss' },
+			'newsapi-the-guardian': { apiKey: 'https://www.theguardian.com/uk/rss' },
+			'newsapi-npr': { apiKey: 'https://www.npr.org/rss/rss.php?id=1001' },
+			'newsapi-skynews': {
+				apiKey: 'https://feeds.skynews.com/feeds/rss/world.xml',
+			},
+			'newsapi-cbsnews': {
+				apiKey: 'https://www.cbsnews.com/latest/rss/main',
+			},
+			'telegram-halyvaigr_tg': {
+				botToken: process.env.TELEGRAM_BOT_TOKEN,
+				channelId: 'halyvaigr_tg',
+			},
+			'telegram-strudio': {
+				botToken: process.env.TELEGRAM_BOT_TOKEN,
+				channelId: 'strudio',
+			},
+			'telegram-sql-ready': {
+				botToken: process.env.TELEGRAM_BOT_TOKEN,
+				channelId: 'sql_ready',
+			},
+			'telegram-golang-interview': {
+				botToken: process.env.TELEGRAM_BOT_TOKEN,
+				channelId: 'golang_interview',
+			},
+			'telegram-durov': {
+				botToken: process.env.TELEGRAM_BOT_TOKEN,
+				channelId: 'durov',
+			},
+			'scraping-rbc': {
+				url: 'https://www.rbc.ru/',
 				selectors: {
-					title: 'h3.news-title',
-					summary: '.news-summary',
+					title: 'h2[data-test="news-item-title"]',
+					summary: '.news-item__text',
 					link: 'a',
+				},
+			},
+			'scraping-lenta': {
+				url: 'https://lenta.ru/',
+				selectors: {
+					title: '.card-full-news__title',
+					summary: '.card-full-news__text',
+					link: 'a[href]',
+				},
+			},
+			'scraping-kommersant': {
+				url: 'https://www.kommersant.ru/',
+				selectors: {
+					title: '.news__title',
+					summary: '.news__lead',
+					link: '.news__link',
+				},
+			},
+			'scraping-vedomosti': {
+				url: 'https://www.vedomosti.ru/',
+				selectors: {
+					title: 'h3.u-h3',
+					summary: '.lenta-item__text',
+					link: 'a',
+				},
+			},
+			'scraping-izvestia': {
+				url: 'https://iz.ru/',
+				selectors: {
+					title: '.block-news__title',
+					summary: '.block-news__lead',
+					link: '.block-news__link',
 				},
 			},
 		}
 
 		const newsList = []
 		for (const key in config) {
-			if (key.startsWith('newsapi')) {
-				const parser = FactoryService.create('newsapi', config.newsapi)
-				const news = await parser.fetchNews({ q: 'technology', pageSize: 5 })
-				console.log('Fetched news: ', news)
+			const sourceConfig = config[key]
+			try {
+				let parser
+				let fetchParams
+				if (key.startsWith('newsapi')) {
+					parser = FactoryService.create('newsapi', sourceConfig)
+					fetchParams = { q: 'technology', pageSize: 5 }
+				} else if (key.startsWith('telegram')) {
+					parser = FactoryService.create('telegram', sourceConfig)
+					fetchParams = { limit: 5 }
+				} else if (key.startsWith('scraping')) {
+					parser = FactoryService.create('scraping', sourceConfig)
+					fetchParams = { limit: 5 }
+				} else {
+					console.warn(`Unknown source type for key: ${key}`)
+					continue
+				}
+				const news = await parser.fetchNews(fetchParams)
+				console.log(`Fetched news from ${key}: `, news)
 				newsList.push(...news)
-			} else if (key.startsWith('telegram')) {
-				const parser = FactoryService.create(
-					'telegram',
-					config.telegram.botToken,
-					config.telegram.channelId
-				)
-				const news = await parser.fetchNews({ limit: 5 })
-				console.log('Fetched news: ', news)
-				newsList.push(...news)
-			} else if (key.startsWith('scraping')) {
-				const parser = FactoryService.create(
-					'scraping',
-					config.scraping.url,
-					config.scraping.selectors
-				)
-				const news = await parser.fetchNews({ limit: 5 })
-				console.log('Fetched news: ', news)
-				newsList.push(...news)
+			} catch (error) {
+				console.error(`Error fetching from ${key}:`, error.message)
 			}
 		}
 
@@ -59,6 +134,52 @@ class TimeService {
 
 		let previousEmbeddings = []
 
+		let summarizer = null
+		const USE_SUMMARY_MODEL = process.env.USE_SUMMARY_MODEL !== 'false' 
+		if (USE_SUMMARY_MODEL) {
+			try {
+				console.log(
+					'Attempting to initialize local summarizer (Xenova/distilbart-cnn-12-6)...'
+				) 
+				summarizer = await pipeline(
+					'summarization',
+					'Xenova/distilbart-cnn-12-6',
+					{
+						revision: 'main',
+						quantized: true,
+					}
+				)
+				console.log(
+					'Local summarizer initialized successfully. Model ready for compression.'
+				)
+			} catch (initError) {
+				console.error(
+					'Failed to init local summarizer (first attempt):',
+					initError.message
+				)
+				try {
+					console.log('Retrying summarizer init...')
+					summarizer = await pipeline(
+						'summarization',
+						'Xenova/distilbart-cnn-12-6',
+						{
+							revision: 'main',
+							quantized: true,
+						}
+					)
+					console.log('Local summarizer initialized on retry.')
+				} catch (retryError) {
+					console.error(
+						'Retry failed. Disabling model, using extractive fallback:',
+						retryError.message
+					)
+					summarizer = null
+				}
+			}
+		} else {
+			console.log('Summary model disabled. Using extractive fallback only.')
+			summarizer = null
+		}
 		const processNewsLocal = async (
 			inputNews,
 			inputCategories,
@@ -188,7 +309,7 @@ class TimeService {
 						topCategories = keywordTopCategories(
 							newsTexts[embIndex],
 							inputCategoriesLocal
-						)
+						).slice(0, 3)
 					} else {
 						const sims = categoryEmbeddings.map((catEmb, idx) =>
 							cosineSimilarity(emb, catEmb)
@@ -208,33 +329,100 @@ class TimeService {
 				}
 			})
 
-			const summarizeLimit = pLimit(NEWS_CONFIG.LIMIT_CONCURRENCY)
-			const summarizedPromises = classifiedNews.map(newsItem =>
-				summarizeLimit(async () => {
-					try {
-						const text = getNewsText(newsItem)
-						const summary = await summarizeText(text)
-						delete newsItem.tempIndex
-						return { ...newsItem, summary }
-					} catch (error) {
-						console.error(`Summary error for news: ${error.message}`)
-						delete newsItem.tempIndex
-						const text = getNewsText(newsItem)
-						const sentences = text.match(/[^\.!\?]+[\.!\?]+/g) || [text]
-						const fallback = sentences
-							.slice(0, NEWS_CONFIG.MAX_SUMMARY_SENTENCES)
-							.join(' ')
-							.trim()
-						const truncated =
-							fallback.length > NEWS_CONFIG.MAX_SUMMARY_LENGTH
-								? fallback.slice(0, NEWS_CONFIG.MAX_SUMMARY_LENGTH - 3).trim() +
-								  '...'
-								: fallback
-						return { ...newsItem, summary: truncated }
-					}
-				})
+			const summarizeLimit = pLimit(NEWS_CONFIG.LIMIT_CONCURRENCY || 3);
+const summarizedPromises = classifiedNews.map((newsItem, index) =>
+	summarizeLimit(async () => {
+		try {
+			const text = getNewsText(newsItem) 
+			console.log(
+				`[DEBUG] Processing news ${index}: Original text length = ${text.length} chars`
 			)
+			const cyrillicCount = (text.match(/[\u0400-\u04FF]/g) || []).length
+			const isRussian = cyrillicCount / text.length > 0.1 
+			console.log(
+				`[DEBUG] Language detect: RU=${isRussian} (cyrillic=${cyrillicCount}/${text.length})`
+			)
+			let summary = ''
+			const sentences = text
+				.split(/([.!?]+(?:\s|$))/)
+				.filter(s => s.trim().length > 10)
+				.slice(0, 10) 
+			const extractiveSentences = sentences.slice(0, 3)
+			let extractiveSummary = extractiveSentences.join(' ').trim() + '.'
+			console.log(
+				`[DEBUG] Extractive: ${sentences.length} sentences → ${
+					extractiveSummary.length
+				} chars | Preview: "${extractiveSummary.slice(0, 100)}..."`
+			)
+			if (summarizer && text.length > 200 && !isRussian) {
+				console.log(`[DEBUG] Using model for English text...`)
+				const output = await summarizer(text, {
+					max_length: 150,
+					min_length: 30,
+					max_new_tokens: 80,
+					do_sample: false,
+					truncation: true,
+				})
+				summary = output[0]?.summary_text?.trim() || ''
+				console.log(
+					`[DEBUG] Model summary length: ${
+						summary.length
+					} chars | Preview: "${summary.slice(0, 100)}..."`
+				)
+				if (
+					summary.length < 50 ||
+					(isRussian &&
+						/[A-Z]/.test(summary) &&
+						!/[\u0400-\u04FF]/.test(summary))
+				) {
+					console.log(
+						`[DEBUG] Model output poor (short/garbled), fallback to extractive`
+					)
+					summary = ''
+				}
+			}
+			summary = summary || extractiveSummary
+			const finalSentences = summary
+				.split(/([.!?]+(?:\s|$))/)
+				.filter(s => s.trim().length > 10)
+				.slice(0, 3)
+			let finalSummary = finalSentences.join(' ').trim() + '.'
+			if (finalSummary.length > 256) {
+				finalSummary = truncateTo256(finalSummary)
+				console.log(`[DEBUG] Truncated to 256 chars`)
+			}
+			console.log(
+				`[DEBUG] Final summary length: ${
+					finalSummary.length
+				} chars | Preview: "${finalSummary.slice(0, 100)}..."`
+			)
+			delete newsItem.tempIndex
+			return { ...newsItem, summary: finalSummary }
+		} catch (error) {
+			console.error(`[ERROR] Summary error for news ${index}: ${error.message}`)
+			delete newsItem.tempIndex
+			const text = getNewsText(newsItem)
+			const sentences = text
+				.split(/([.!?]+(?:\s|$))/)
+				.filter(s => s.trim().length > 10)
+			const fallbackSummary = truncateTo256(
+				sentences.slice(0, 3).join(' ').trim() + '.'
+			)
+			console.log(
+				`[DEBUG] Catch fallback: ${
+					fallbackSummary.length
+				} chars | Preview: "${fallbackSummary.slice(0, 100)}..."`
+			)
+			return { ...newsItem, summary: fallbackSummary }
+		}
+	})
+)
+						
 			const summarizedNews = await Promise.all(summarizedPromises)
+			console.log(
+				`[DEBUG] All summaries generated: ${summarizedNews.length} items`
+			)
+
 			const embeddingsForDB = uniqueEmbeddings
 			const responseData = summarizedNews.map(({ tempIndex, ...rest }) => rest)
 			return {
@@ -245,26 +433,56 @@ class TimeService {
 				embeddingsForDB,
 			}
 		}
+
+		function truncateTo256(text) {
+			if (text.length <= 256) return text
+			let truncated = text.slice(0, 256)
+			const lastSpace = truncated.lastIndexOf(' ', 253)
+			if (lastSpace > 0) {
+				truncated = truncated.slice(0, lastSpace)
+			}
+			const result = truncated.trim() + '...'
+			console.log(`[DEBUG] Truncate: ${text.length} → ${result.length} chars`)
+			return result
+		}
+
 		const processed = await processNewsLocal(
 			news,
 			categories,
 			previousEmbeddings
 		)
 		const uniqueNewsList = processed.uniqueNews
+
 		const summaryNewsList = []
+		console.log('[DEBUG] Unique news with summaries:')
 		for (let i = 0; i < uniqueNewsList.length; i++) {
-			console.log(uniqueNewsList[i])
-			summaryNewsList.push(uniqueNewsList[i])
+			const item = uniqueNewsList[i]
+			console.log(
+				`News ${i}: Title="${item.title?.slice(
+					0,
+					50
+				)}...", Summary="${item.summary?.slice(0, 100)}..." (len=${
+					item.summary?.length || 0
+				})`
+			)
+			console.log(`Full summary: ${item.summary}`) 
+			console.log(`Categories: ${JSON.stringify(item.topCategories || [])}`)
+			summaryNewsList.push(item)
 		}
 
 		const uniqueNewsListForDB = uniqueNewsList.map(item => ({
 			...item,
-			summary_text: item.summary || '',
+			summary_text:
+				item.summary || truncateTo256(item.summary_text || item.title || ''),
 			categories: item.topCategories || [],
+			date:
+				item.date instanceof Date && !isNaN(item.date) ? item.date : new Date(),
 		}))
 		try {
 			const inserted = await insertNews(uniqueNewsListForDB)
-			console.log(`Сохранено ${inserted.length} уникальных новостей в БД`)
+			console.log(
+				`Сохранено ${inserted.length} уникальных новостей в БД (с summaries ≤256 chars)`
+			)
 		} catch (saveError) {
 			console.error('Ошибка сохранения в БД:', saveError.message)
 		}
@@ -276,4 +494,4 @@ class TimeService {
 	}
 }
 
-export default TimeService()
+export default new TimeService

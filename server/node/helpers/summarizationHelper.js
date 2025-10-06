@@ -1,15 +1,26 @@
 import axios from 'axios'
 import { NEWS_CONFIG } from './config.js'
 const apiClient = axios.create({
-	timeout: 10000,
+	timeout: 30000,
 	headers: { ...NEWS_CONFIG.HEADERS, 'Content-Type': 'application/json' },
 })
-// Извлечение текста новости
-export function getNewsText(newsItem) {
-	if (typeof newsItem === 'string') return newsItem
-	return (newsItem.title || '') + ' ' + (newsItem.content || '')
+export function getNewsText(item) {
+	let text =
+		(item.summary_text || '') +
+		'. ' +
+		(item.content || '')
+	text = text.trim()
+	if (text.length === 0) {
+		text = item.title || 'No content available'
+		console.warn('[WARN] Empty text for news, using title only')
+	}
+	console.log(
+		`[DEBUG] getNewsText assembled: ${text.length} chars (title=${
+			item.title?.length || 0
+		}, summary_text=${item.summary_text?.length || 0})`
+	)
+	return text
 }
-// Keyword fallback для классификации
 export function keywordTopCategories(newsText, categories) {
 	const newsWords = newsText.toLowerCase().split(/\s+/)
 	const scores = categories.map(cat => {
@@ -27,7 +38,6 @@ export function keywordTopCategories(newsText, categories) {
 		.map(s => s.category)
 }
 
-// Суммаризация (без p-limit, так как в TimeService используем Promise.all)
 export async function summarizeText(text) {
   try {
     const response = await apiClient.post(`${NEWS_CONFIG.HF_API_URL}/${NEWS_CONFIG.SUMMARIZATION_MODEL}`, {

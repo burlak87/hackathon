@@ -1,67 +1,31 @@
-import NewsSource from '../interface/NewsSource.js'
-import axios from 'axios'
-import { searchLast } from '../helpers/searchLast.js'
+import NewsSource from "../interface/NewsSource.js"
+import Parser from 'rss-parser';
+
+const parser = new Parser();
 
 class NewsApiParser extends NewsSource {
-	constructor(apiKey) {
-		super('NewsAPI')
-		this.apiKey = apiKey
-		this.baseUrl = 'https://newsapi.org/v2/everything'
-	}
-
-  async fetchNews(options = { q: 'technology', pageSize: 10, source: null }) {
-		let lastDate = null
-		const querySource = options.source
-		if (querySource) {
-			lastDate = await searchLast(lastDate, querySource)
-		} else {
-			lastDate = new Date(Date.now() - 24 * 60 * 60 * 1000)
-			console.log(
-				'Нет указанного source. Парсим за последние 24 часа (общий запрос).'
-			)
-		}
+  constructor(apiKey) {
+    super('NewsAPI');
+    this.apiKey = apiKey;
+    this.source = 'RSS Feed';
+  }
+  async fetchNews(options = { pageSize: 10 }) {
     try {
-			const params = {
-				q: options.q || 'news',
-				apiKey: this.apiKey,
-				pageSize: options.pageSize || 10,
-				sortBy: 'publishedAt',
-				from: lastDate.toISOString().split('T')[0],
-				...(options.language && { language: options.language }),
-				...(querySource && { sources: querySource }),
-			}
-			const response = await axios.get(this.baseUrl, { params, timeout: 10000 })
-			if (response.data.status !== 'ok') {
-				throw new Error(`NewsAPI status: ${response.data.message}`)
-			}
-			const news = response.data.articles
-				.filter(article => article.publishedAt)
-				.map(article => {
-					const parsedDate = new Date(article.publishedAt)
-					if (isNaN(parsedDate.getTime())) {
-						parsedDate = new Date()
-					}
-					if (parsedDate <= lastDate) return null
-					return {
-						title: article.title || 'No Title',
-						summary_text: article.description || '',
-						url: article.url,
-						date: parsedDate,
-						source: article.source.name,
-						categories: [],
-					}
-				})
-				.filter(Boolean)
-			console.log(
-				`Найдено ${news.length} новых статей после ${
-					lastDate.toISOString().split('T')[0]
-				}.`
-			)
-			return news
-		} catch (error) {
-			console.error('NewsAPI error: ', error.message)
-			return []
-		}
+      const feed = await parser.parseURL(this.apiKey);
+      const news = feed.items.slice(0, options.pageSize).map(item => ({
+        title: item.title,
+        summary_text: item.contentSnippet || item.description || '',
+        url: item.link,
+        date: new Date(item.pubDate || item.isoDate),
+        source: this.sourceName,
+        categories: [],
+	    }));
+      console.log(`Parsed ${news.length} items from RSS`);
+      return news;
+    } catch (error) {
+      console.error('RSS parse error:', error.message);
+      return [];
+    }
   }
 }
 

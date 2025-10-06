@@ -7,7 +7,6 @@ const apiClient = axios.create({
 	headers: { ...NEWS_CONFIG.HEADERS, 'Content-Type': 'application/json' },
 })
 let globalTfIdf = null
-// Косинусное сходство
 export function cosineSimilarity(vecA, vecB) {
 	if (
 		!Array.isArray(vecA) ||
@@ -22,7 +21,6 @@ export function cosineSimilarity(vecA, vecB) {
 	const magnitudeB = Math.sqrt(vecB.reduce((sum, b) => sum + b * b, 0))
 	return magnitudeA && magnitudeB ? dotProduct / (magnitudeA * magnitudeB) : 0
 }
-// Fallback: TF-IDF
 export function initTfIdf(allTexts) {
 	globalTfIdf = new TfIdf()
 	allTexts.forEach(text =>
@@ -47,11 +45,9 @@ export function computeTfIdfSimilarity(indexA, indexB) {
 	while (vecB.length > maxLen) vecB.pop()
 	return cosineSimilarity(vecA, vecB)
 }
-// Ultra-fallback: Jaro-Winkler
 export function jaroWinklerSimilarity(textA, textB) {
 	return natural.JaroWinklerDistance(textA, textB) || 0
 }
-// Батч-эмбеддинги
 async function getBatchEmbeddings(texts) {
 	if (texts.length === 0) return []
 	try {
@@ -72,7 +68,6 @@ async function getBatchEmbeddings(texts) {
 	}
 }
 
-// Эмбеддинги с fallback
 export async function getEmbeddingsWithFallback(allTexts, startIndex = 0) {
   let embeddings;
   try {

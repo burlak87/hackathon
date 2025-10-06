@@ -23,37 +23,30 @@ async function insertNews(newsArray) {
 		console.log('Нет новостей для вставки')
 		return []
 	}
+  console.log('Number of news:', newsArray.length)
 	try {
-		const hasCategory = newsArray.some(item => item.category !== undefined)
-		const fieldCount = hasCategory ? 7 : 6 
+		console.log('Expected placeholders:', newsArray.length * 6)			
 		const query = `
-      INSERT INTO news (title, summary_text, url, date, source, categories ${
-				hasCategory ? ', category' : ''
-			})
-      VALUES ${newsArray
-				.map((_, i) => {
-					const base = `($${i * fieldCount + 1}, $${i * fieldCount + 2}, $${
-						i * fieldCount + 3
-					}, $${i * fieldCount + 4}, $${i * fieldCount + 5}, $${
-						i * fieldCount + 6
-					})`
-					return hasCategory
-						? `${base.slice(0, -1)}, $${i * fieldCount + 7})`
-						: base
-				})
+      INSERT INTO news (title, summary_text, url, date, source, categories)
+			VALUES ${newsArray
+				.map(
+					(_, i) =>
+						`($${i * 6 + 1}, $${i * 6 + 2}, $${i * 6 + 3}, $${
+							i * 6 + 4
+						}, $${i * 6 + 5}, $${i * 6 + 6})`
+				)
 				.join(', ')}
-      ON CONFLICT (url) DO NOTHING  -- Избегать дубликатов по URL
-      RETURNING *
-    `
+  		ON CONFLICT (url) DO NOTHING RETURNING *
+			`
 		const values = newsArray.flatMap(item => [
-			item.title,
-			item.summary_text || item.summary || '',
-			item.url,
-			item.date,
-			item.source,
-			JSON.stringify(item.categories || item.topCategories || []),
-			...(hasCategory ? [item.category || null] : []),
+			item.title || '',
+			item.summary_text || '',
+			item.url || '',
+			item.date || new Date(),
+			item.source || 'Unknown',
+			JSON.stringify(item.categories || []),
 		])
+		console.log('Values length:', values.length)
 		const result = await pool.query(query, values)
 		console.log(`Вставлено ${result.rowCount} новых новостей`)
 		return result.rows
