@@ -134,30 +134,6 @@
                       TELEGRAM <br> САМОЕ ГОРЯЧЕЕ
                     </label>
                 </article>
-                <!--<article>
-                    <InputCheckBox @change-tags="addSours" :tag="'bbc-news'"/>
-                    <label>
-                      BSS <br>САМОЕ ГОРЯЧЕЕ
-                    </label>
-                </article>
-                <article>
-                    <InputCheckBox @change-tags="addSours" :tag="'kommersant'"/>
-                    <label>
-                     KOMMERSANT <br>НАШ ЛУЧШИЙ
-                    </label>
-                </article>
-                <article>
-                    <InputCheckBox @change-tags="addSours" :tag="'rbc'"/>
-                    <label>
-                     RBC <br>ЛУЧШИЙ БИЗНЕСУ
-                    </label>
-                </article>
-                <article>
-                    <InputCheckBox @change-tags="addSours" :tag="'rian-ru'"/>
-                    <label>
-                     RIAN <br>ВСЁ И ОБО ВСЁМ
-                    </label>
-                </article>-->
               </form>
             </article>
             <article class="filters-optional">

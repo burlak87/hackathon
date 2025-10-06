@@ -29,30 +29,6 @@
                       TELEGRAM <br> ГЛУБОКАЯ АНАЛИТИКА
                     </label>
                 </article>
-                <!--<article>
-                    <InputCheckBox @change-tags="(sours) => {$emit('addSours', sours)}" :tag="'bbc-news'"/>
-                    <label>
-                      BSS <br>САМОЕ ГОРЯЧЕЕ
-                    </label>
-                </article>
-                <article>
-                    <InputCheckBox @change-tags="(sours) => {$emit('addSours', sours)}" :tag="'kommersant'"/>
-                    <label>
-                     KOMMERSANT <br>НАШ ЛУЧШИЙ
-                    </label>
-                </article>
-                <article>
-                    <InputCheckBox @change-tags="(sours) => {$emit('addSours', sours)}" :tag="'rbc'"/>
-                    <label>
-                     RBC <br>ЛУЧШИЙ БИЗНЕСУ
-                    </label>
-                </article>
-                <article>
-                    <InputCheckBox @change-tags="(sours) => {$emit('addSours', sours)}" :tag="'rian-ru'"/>
-                    <label>
-                     RIAN <br>ВСЁ И ОБО ВСЁМ
-                    </label>
-                </article>-->
               </form>
             </article>
             <article class="filters-optional">
