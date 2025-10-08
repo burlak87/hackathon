@@ -300,7 +300,7 @@ function openModalFilters() {
           </article>
         </nav>
         <section class="filters-save">
-          <button @click="filtration">Сохранить и продолжить <span>→</span></button>
+          <button v-if="activeTags[2].length > 1" @click="filtration">Сохранить и продолжить <span>→</span></button>
         </section>
       </article>
       <article class="news">

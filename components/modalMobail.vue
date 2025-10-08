@@ -206,7 +206,7 @@
                 </article>
             </nav>
             <section class="filters-save">
-                <button @click.prevent="$emit('filtrAdd')">Сохранить и продолжить <span>→</span></button>
+                <button v-if="timeReload.length > 1" @click.prevent="$emit('filtrAdd')">Сохранить и продолжить <span>→</span></button>
             </section>
         </article>
     </section>
