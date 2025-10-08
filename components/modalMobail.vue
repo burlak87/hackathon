@@ -15,7 +15,6 @@
         } else {
             timeReload.value.splice(timeReload.value.indexOf(el), 1)
         }
-        console.log(timeReload.value)
     }
 </script>
 
