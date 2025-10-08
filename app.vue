@@ -5,120 +5,7 @@ const activeTags = ref([[], [], []]),
 let modalStatus = ref(false)
 
 
-const posts = ref([
-  {
-    name: "1111",
-    isto: "TG",
-    time: 2,
-    description: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-    link: "#"
-  },
-  {
-    name: "1111",
-    isto: "TG",
-    time: 2,
-    description: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-    link: "#"
-  },
-  {
-    name: "1111",
-    isto: "TG",
-    time: 2,
-    description: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-    link: "#"
-  },
-  {
-    name: "1111",
-    isto: "TG",
-    time: 2,
-    description: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-    link: "#"
-  },
-  {
-    name: "1111",
-    isto: "TG",
-    time: 2,
-    description: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-    link: "#"
-  },
-  {
-    name: "1111",
-    isto: "TG",
-    time: 2,
-    description: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-    link: "#"
-  },
-  {
-    name: "1111",
-    isto: "TG",
-    time: 2,
-    description: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-    link: "#"
-  },
-  {
-    name: "1111",
-    isto: "TG",
-    time: 2,
-    description: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-    link: "#"
-  },
-  {
-    name: "1111",
-    isto: "TG",
-    time: 2,
-    description: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-    link: "#"
-  },
-  {
-    name: "1111",
-    isto: "TG",
-    time: 2,
-    description: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-    link: "#"
-  },
-  {
-    name: "1111",
-    isto: "TG",
-    time: 2,
-    description: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-    link: "#"
-  },
-  {
-    name: "1111",
-    isto: "TG",
-    time: 2,
-    description: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-    link: "#"
-  },
-  {
-    name: "1111",
-    isto: "TG",
-    time: 2,
-    description: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-    link: "#"
-  },
-  {
-    name: "1111",
-    isto: "TG",
-    time: 2,
-    description: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-    link: "#"
-  },
-  {
-    name: "1111",
-    isto: "TG",
-    time: 2,
-    description: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-    link: "#"
-  },
-  {
-    name: "1111",
-    isto: "TG",
-    time: 2,
-    description: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-    link: "#"
-  },
-])
+const posts = ref([])
 
 async function allPosts() {
   await fetch(" http://localhost:3001/api-v1/news", {
@@ -174,7 +61,6 @@ function addTimeReload(el) {
   } else {
     activeTags.value[2].splice(activeTags.value[2].indexOf(el), 1)
   }
-  console.log(activeTags.value)
 }
 
 function addCategori(el) {
@@ -192,15 +78,13 @@ function filtration() {
   }
 
   if (!activeTags.value[0].length && !activeTags.value[1].length) {
-    //allPosts()
+    allPosts()
     appliedTags.value = []
     return 0;
   } else {
     appliedTags.value = [...activeTags.value[0]]
     appliedTags.value.push(...activeTags.value[1])
     filterPost(activeTags.value)
-
-
   }
 }
 
