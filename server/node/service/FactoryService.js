@@ -6,11 +6,11 @@ class FactoryService {
   static create(type, config) {
     switch (type.toLowerCase()) {
       case 'newsapi':
-        if (!config.apiKey) throw new Error('API key required for NewsAPI')
+        if (!config.apiKey || !config.source) throw new Error('API key required for NewsAPI')
         return new NewsApiParser(config.apiKey)
       
       case 'telegram':
-        if (!config.botToken || !config.channelId) throw new Error('Bot token and channel ID required for Telegram Channel')
+        if (!config.botToken || !config.channelId || !config.source) throw new Error('Bot token and channel ID required for Telegram Channel')
         return new TelegramParser(config.botToken, config.channelId)
 
       // case 'scraping':

@@ -21,40 +21,56 @@ const categories = [
 	'Наука',
 	'Здоровье',
 	'Развлечения',
-	'игры',
+	'Игры',
 ]
 
 class TimeService {
 	async factoryNews() {
 		const config = {
-			'newsapi-cnn': { apiKey: 'http://rss.cnn.com/rss/edition.rss' },
-			'newsapi-the-guardian': { apiKey: 'https://www.theguardian.com/uk/rss' },
-			'newsapi-npr': { apiKey: 'https://www.npr.org/rss/rss.php?id=1001' },
+			'newsapi-cnn': {
+				apiKey: 'http://rss.cnn.com/rss/edition.rss',
+				source: 'cnn',
+			},
+			'newsapi-the-guardian': {
+				apiKey: 'https://www.theguardian.com/uk/rss',
+				source: 'the-guardian',
+			},
+			'newsapi-npr': {
+				apiKey: 'https://www.npr.org/rss/rss.php?id=1001',
+				source: 'npr',
+			},
 			'newsapi-skynews': {
 				apiKey: 'https://feeds.skynews.com/feeds/rss/world.xml',
+				source: 'skynews',
 			},
 			'newsapi-cbsnews': {
 				apiKey: 'https://www.cbsnews.com/latest/rss/main',
+				source: 'cbsnews',
 			},
 			'telegram-halyvaigr_tg': {
 				botToken: process.env.TELEGRAM_BOT_TOKEN,
 				channelId: 'halyvaigr_tg',
+				source: 'halyvaigr',
 			},
 			'telegram-strudio': {
 				botToken: process.env.TELEGRAM_BOT_TOKEN,
 				channelId: 'strudio',
+				source: 'strudio',
 			},
 			'telegram-sql-ready': {
 				botToken: process.env.TELEGRAM_BOT_TOKEN,
 				channelId: 'sql_ready',
+				source: 'SQL-ready',
 			},
 			'telegram-golang-interview': {
 				botToken: process.env.TELEGRAM_BOT_TOKEN,
 				channelId: 'golang_interview',
+				source: 'golang-interview',
 			},
 			'telegram-durov': {
 				botToken: process.env.TELEGRAM_BOT_TOKEN,
 				channelId: 'durov',
+				source: 'Pavel Durov',
 			},
 			'scraping-rbc': {
 				url: 'https://www.rbc.ru/',
@@ -330,93 +346,93 @@ class TimeService {
 			})
 
 			const summarizeLimit = pLimit(NEWS_CONFIG.LIMIT_CONCURRENCY || 3);
-const summarizedPromises = classifiedNews.map((newsItem, index) =>
-	summarizeLimit(async () => {
-		try {
-			const text = getNewsText(newsItem) 
-			console.log(
-				`[DEBUG] Processing news ${index}: Original text length = ${text.length} chars`
-			)
-			const cyrillicCount = (text.match(/[\u0400-\u04FF]/g) || []).length
-			const isRussian = cyrillicCount / text.length > 0.1 
-			console.log(
-				`[DEBUG] Language detect: RU=${isRussian} (cyrillic=${cyrillicCount}/${text.length})`
-			)
-			let summary = ''
-			const sentences = text
-				.split(/([.!?]+(?:\s|$))/)
-				.filter(s => s.trim().length > 10)
-				.slice(0, 10) 
-			const extractiveSentences = sentences.slice(0, 3)
-			let extractiveSummary = extractiveSentences.join(' ').trim() + '.'
-			console.log(
-				`[DEBUG] Extractive: ${sentences.length} sentences → ${
-					extractiveSummary.length
-				} chars | Preview: "${extractiveSummary.slice(0, 100)}..."`
-			)
-			if (summarizer && text.length > 200 && !isRussian) {
-				console.log(`[DEBUG] Using model for English text...`)
-				const output = await summarizer(text, {
-					max_length: 150,
-					min_length: 30,
-					max_new_tokens: 80,
-					do_sample: false,
-					truncation: true,
+			const summarizedPromises = classifiedNews.map((newsItem, index) =>
+				summarizeLimit(async () => {
+					try {
+						const text = getNewsText(newsItem) 
+						console.log(
+							`[DEBUG] Processing news ${index}: Original text length = ${text.length} chars`
+						)
+						const cyrillicCount = (text.match(/[\u0400-\u04FF]/g) || []).length
+						const isRussian = cyrillicCount / text.length > 0.1 
+						console.log(
+							`[DEBUG] Language detect: RU=${isRussian} (cyrillic=${cyrillicCount}/${text.length})`
+						)
+						let summary = ''
+						const sentences = text
+							.split(/([.!?]+(?:\s|$))/)
+							.filter(s => s.trim().length > 10)
+							.slice(0, 10) 
+						const extractiveSentences = sentences.slice(0, 3)
+						let extractiveSummary = extractiveSentences.join(' ').trim() + '.'
+						console.log(
+							`[DEBUG] Extractive: ${sentences.length} sentences → ${
+								extractiveSummary.length
+							} chars | Preview: "${extractiveSummary.slice(0, 100)}..."`
+						)
+						if (summarizer && text.length > 200 && !isRussian) {
+							console.log(`[DEBUG] Using model for English text...`)
+							const output = await summarizer(text, {
+								max_length: 150,
+								min_length: 30,
+								max_new_tokens: 80,
+								do_sample: false,
+								truncation: true,
+							})
+							summary = output[0]?.summary_text?.trim() || ''
+							console.log(
+								`[DEBUG] Model summary length: ${
+									summary.length
+								} chars | Preview: "${summary.slice(0, 100)}..."`
+							)
+							if (
+								summary.length < 50 ||
+								(isRussian &&
+									/[A-Z]/.test(summary) &&
+									!/[\u0400-\u04FF]/.test(summary))
+							) {
+								console.log(
+									`[DEBUG] Model output poor (short/garbled), fallback to extractive`
+								)
+								summary = ''
+							}
+						}
+						summary = summary || extractiveSummary
+						const finalSentences = summary
+							.split(/([.!?]+(?:\s|$))/)
+							.filter(s => s.trim().length > 10)
+							.slice(0, 3)
+						let finalSummary = finalSentences.join(' ').trim() + '.'
+						if (finalSummary.length > 256) {
+							finalSummary = truncateTo256(finalSummary)
+							console.log(`[DEBUG] Truncated to 256 chars`)
+						}
+						console.log(
+							`[DEBUG] Final summary length: ${
+								finalSummary.length
+							} chars | Preview: "${finalSummary.slice(0, 100)}..."`
+						)
+						delete newsItem.tempIndex
+						return { ...newsItem, summary: finalSummary }
+					} catch (error) {
+						console.error(`[ERROR] Summary error for news ${index}: ${error.message}`)
+						delete newsItem.tempIndex
+						const text = getNewsText(newsItem)
+						const sentences = text
+							.split(/([.!?]+(?:\s|$))/)
+							.filter(s => s.trim().length > 10)
+						const fallbackSummary = truncateTo256(
+							sentences.slice(0, 3).join(' ').trim() + '.'
+						)
+						console.log(
+							`[DEBUG] Catch fallback: ${
+								fallbackSummary.length
+							} chars | Preview: "${fallbackSummary.slice(0, 100)}..."`
+						)
+						return { ...newsItem, summary: fallbackSummary }
+					}
 				})
-				summary = output[0]?.summary_text?.trim() || ''
-				console.log(
-					`[DEBUG] Model summary length: ${
-						summary.length
-					} chars | Preview: "${summary.slice(0, 100)}..."`
-				)
-				if (
-					summary.length < 50 ||
-					(isRussian &&
-						/[A-Z]/.test(summary) &&
-						!/[\u0400-\u04FF]/.test(summary))
-				) {
-					console.log(
-						`[DEBUG] Model output poor (short/garbled), fallback to extractive`
-					)
-					summary = ''
-				}
-			}
-			summary = summary || extractiveSummary
-			const finalSentences = summary
-				.split(/([.!?]+(?:\s|$))/)
-				.filter(s => s.trim().length > 10)
-				.slice(0, 3)
-			let finalSummary = finalSentences.join(' ').trim() + '.'
-			if (finalSummary.length > 256) {
-				finalSummary = truncateTo256(finalSummary)
-				console.log(`[DEBUG] Truncated to 256 chars`)
-			}
-			console.log(
-				`[DEBUG] Final summary length: ${
-					finalSummary.length
-				} chars | Preview: "${finalSummary.slice(0, 100)}..."`
 			)
-			delete newsItem.tempIndex
-			return { ...newsItem, summary: finalSummary }
-		} catch (error) {
-			console.error(`[ERROR] Summary error for news ${index}: ${error.message}`)
-			delete newsItem.tempIndex
-			const text = getNewsText(newsItem)
-			const sentences = text
-				.split(/([.!?]+(?:\s|$))/)
-				.filter(s => s.trim().length > 10)
-			const fallbackSummary = truncateTo256(
-				sentences.slice(0, 3).join(' ').trim() + '.'
-			)
-			console.log(
-				`[DEBUG] Catch fallback: ${
-					fallbackSummary.length
-				} chars | Preview: "${fallbackSummary.slice(0, 100)}..."`
-			)
-			return { ...newsItem, summary: fallbackSummary }
-		}
-	})
-)
 						
 			const summarizedNews = await Promise.all(summarizedPromises)
 			console.log(

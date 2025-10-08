@@ -2,12 +2,13 @@ import NewsSource from '../interface/NewsSource.js';
 import axios from 'axios';
 import { load } from 'cheerio';
 import { getLastNewsDateBySource } from '../helpers/newsHelpers.js';
+
 class TelegramParser extends NewsSource {
-	constructor(botToken, channelId) {
+	constructor(botToken, channelId, source) {
 		super('Telegram')
 		this.botToken = botToken
 		this.channelId = channelId.startsWith('@') ? channelId.slice(1) : channelId
-		this.source = `@${this.channelId}`
+		this.source = source
 	}
 	async fetchNews(options = { limit: 10 }) {
 		console.log(
@@ -71,7 +72,7 @@ class TelegramParser extends NewsSource {
 							summary_text: text,
 							url: link,
 							date: parsedDate,
-							source: this.sourceName,
+							source: this.source,
 							categories: [],
 						})
 					}
@@ -115,7 +116,7 @@ class TelegramParser extends NewsSource {
 							summary_text: post.text || '',
 							url: `https://t.me/${this.channelId}/${post.message_id}`,
 							date: parsedDate,
-							source: this.sourceName,
+							source: this.source,
 							categories: [],
 						})
 					}

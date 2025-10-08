@@ -4,10 +4,10 @@ import Parser from 'rss-parser';
 const parser = new Parser();
 
 class NewsApiParser extends NewsSource {
-  constructor(apiKey) {
+  constructor(apiKey, source) {
     super('NewsAPI');
     this.apiKey = apiKey;
-    this.source = 'RSS Feed';
+    this.source = source;
   }
   async fetchNews(options = { pageSize: 10 }) {
     try {
@@ -17,7 +17,7 @@ class NewsApiParser extends NewsSource {
         summary_text: item.contentSnippet || item.description || '',
         url: item.link,
         date: new Date(item.pubDate || item.isoDate),
-        source: this.sourceName,
+        source: this.source,
         categories: [],
 	    }));
       console.log(`Parsed ${news.length} items from RSS`);
