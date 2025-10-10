@@ -1,8 +1,21 @@
+@font-face {
+    font-family: "onder";
+    src: url("/font/ONDER-REGULAR.TTF");
+    font-weight: 500;
+}
+
+
 * {
     margin: 0;
     padding: 0;
+    font-family: "onder";
 }
 article, h1, h2, h3, h4, h5, h6, p, span {
     margin: 0;
     padding: 0;
+
+}
+
+stop {
+    overflow-y: hidden;
 }
