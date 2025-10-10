@@ -14,9 +14,10 @@ async function allPosts() {
       'Content-Type': 'application/json;charset=utf-8'
     }
   })
-    .then((result) => { posts.value = JSON.parse(result.json()) }, error => { console.error(error.message) })
-
+  .then((result) => { posts.value = JSON.stringify(result.json()) }, error => { console.error(error.message) })
 }
+
+console.log(JSON.stringify(posts))
 
 function urlFiltration(sours, categori, urlOld) {
   let filters = []

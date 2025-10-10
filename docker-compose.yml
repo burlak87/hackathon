@@ -60,6 +60,7 @@ services:
       NUXT_PORT: ${NUXT_PORT}
     ports:
       - "3000:3000"
+    command: npm run dev:frontend
     volumes:
       - .:/app
       - /app/node_modules
