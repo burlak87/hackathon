@@ -8,13 +8,23 @@ let modalStatus = ref(false)
 const posts = ref([])
 
 async function allPosts() {
-  await fetch(" http://localhost:3001/api-v1/news", {
-    method: "GET",
-    headers: {
-      'Content-Type': 'application/json;charset=utf-8'
+  try {
+    const response = await fetch("http://localhost:3001/api-v1/news", {
+      method: "GET",
+      headers: {
+        'Content-Type': 'application/json;charset=utf-8'
+      }
+    })
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
     }
-  })
-  .then((result) => { posts.value = JSON.stringify(result.json()) }, error => { console.error(error.message) })
+    const data = await response.json()
+    posts.value = data
+    console.log('All posts loaded:', posts.value)
+  } catch (error) {
+    console.error('Error fetching all posts:', error.message)
+    posts.value = []
+  }
 }
 
 console.log(JSON.stringify(posts))
@@ -70,7 +80,6 @@ function addCategori(el) {
   } else {
     activeTags.value[1].splice(activeTags.value[1].indexOf(el), 1)
   }
-
 }
 
 function filtration() {
@@ -89,10 +98,7 @@ function filtration() {
   }
 }
 
-
-
 function openModalFilters() {
-
   if (modalStatus.value) {
     modalStatus.value = false
   } else {

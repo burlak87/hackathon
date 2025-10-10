@@ -38,6 +38,7 @@ class NewsService {
 		query += ' ORDER BY date DESC LIMIT $' + paramIndex;
 		values.push(limit);
 		const { rows } = await pool.query(query, values);
+		console.log(rows)
 		return rows;
 	}
 }
