@@ -10,7 +10,7 @@ class TelegramParser extends NewsSource {
 		this.channelId = channelId.startsWith('@') ? channelId.slice(1) : channelId
 		this.source = source
 	}
-	async fetchNews(options = { limit: 10 }) {
+	async fetchNews(options = { limit: 15 }) {
 		console.log(
 			`[DEBUG] TelegramParser fetchNews called for ${this.source} with new code`
 		)

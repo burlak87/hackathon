@@ -10,7 +10,7 @@ class WebScrapingParser extends NewsSource {
 		this.selectors = selectors
 	}
 
-	async fetchNews(options = { limit: 10 }) {
+	async fetchNews(options = { limit: 15 }) {
 		let lastDate = null
 		try {
 			lastDate = await getLastNewsDateBySource(this.source)

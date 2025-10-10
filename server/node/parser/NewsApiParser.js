@@ -9,7 +9,7 @@ class NewsApiParser extends NewsSource {
     this.apiKey = apiKey;
     this.source = source;
   }
-  async fetchNews(options = { pageSize: 10 }) {
+  async fetchNews(options = { pageSize: 15 }) {
     try {
       const feed = await parser.parseURL(this.apiKey);
       const news = feed.items.slice(0, options.pageSize).map(item => ({

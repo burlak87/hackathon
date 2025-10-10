@@ -122,13 +122,13 @@ class TimeService {
 				let fetchParams
 				if (key.startsWith('newsapi')) {
 					parser = FactoryService.create('newsapi', sourceConfig)
-					fetchParams = { q: 'technology', pageSize: 5 }
+					fetchParams = { q: 'technology', pageSize: 15 }
 				} else if (key.startsWith('telegram')) {
 					parser = FactoryService.create('telegram', sourceConfig)
-					fetchParams = { limit: 5 }
+					fetchParams = { limit: 15 }
 				} else if (key.startsWith('scraping')) {
 					parser = FactoryService.create('scraping', sourceConfig)
-					fetchParams = { limit: 5 }
+					fetchParams = { limit: 15 }
 				} else {
 					console.warn(`Unknown source type for key: ${key}`)
 					continue
