@@ -2,7 +2,7 @@ import { pool } from '../config/database.js'
 
 class NewsService {
 	async getNews(filters) {
-		const { category, source, time, limit = 10 } = filters;
+		const { category, source, time, limit = 25 } = filters;
 		let query = 'SELECT * FROM news';
 		const conditions = [];
 		const values = [];
