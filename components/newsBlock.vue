@@ -1,18 +1,23 @@
 <script setup>
     let {obj} = defineProps(["obj"])
 
+
+    let time = (Date.now() - new Date(obj.date).getTime()) + (new Date().getTimezoneOffset() * 60 * 100)
+
+    time = new Date(time).getHours()
+
 </script>
 
 <template>
     <section>
-        <h1>{{ obj.name }}</h1>
+        <h1>{{ obj.title }}</h1>
         <article class="item-info">
-            <h2>{{ obj.isto }}</h2>
+            <h2>{{ obj.source }}</h2>
             <p>{{ obj.time }} часа назад</p>
         </article>
-        <p>{{ obj.description }}</p>
+        <p>{{ obj.summary_text }}</p>
         <article class="item-link">
-            <a :href="obj.link">Читать оригинал</a>
+            <a :href="obj.url">Читать оригинал</a>
         </article>
     </section>
 </template>
