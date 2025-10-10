@@ -2,7 +2,7 @@
     let {obj} = defineProps(["obj"])
 
 
-    let time = (Date.now() - new Date(obj.date).getTime()) + (new Date().getTimezoneOffset() * 60 * 100)
+    let time = (Date.now() - new Date(obj.date).getTime()) + (new Date().getTimezoneOffset() * 60 * 10)
 
     time = new Date(time).getHours()
 
